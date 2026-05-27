@@ -419,22 +419,14 @@ export default function SessionPage() {
           )}
 
           {hasPad && !padDone && !isInMission && !isPaused && (
-            <div className="grid grid-cols-2 gap-2">
-              <BigButton
-                label="Déco pad"
-                icon={LogOut}
-                variant="danger"
-                onClick={handlePadDisconnect}
-                loading={loading}
-              />
-              <BigButton
-                label="Mission suivante"
-                icon={ChevronRight}
-                variant="success"
-                onClick={() => setShowMissionForm(true)}
-                loading={loading}
-              />
-            </div>
+            <BigButton
+              label="Déco pad"
+              icon={LogOut}
+              variant="danger"
+              onClick={handlePadDisconnect}
+              loading={loading}
+              className="w-full"
+            />
           )}
 
           {padDone && !session?.left_at && (
