@@ -55,6 +55,7 @@ export interface Mission {
   total_pad_lines: number
   total_weight_kg: number
   total_liters: number | null
+  notes: string | null
   created_at: string
   supports?: MissionSupport[]
 }

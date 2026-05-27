@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   LogIn, LogOut, Play, Square, Coffee, ChevronRight,
-  Zap, AlarmClock, Truck
+  Zap, AlarmClock, Truck, MessageSquare
 } from 'lucide-react'
 import { useSessionStore } from '@/store/session'
 import { TopBar } from '@/components/layout/TopBar'
@@ -23,6 +23,7 @@ export default function SessionPage() {
   const [showMissionForm, setShowMissionForm] = useState(false)
   const [showProductionInput, setShowProductionInput] = useState(false)
   const [showPauseModal, setShowPauseModal] = useState(false)
+  const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
   const [tick, setTick] = useState(0)
 
   const { session, missions, pauses, snapshots, profile, activeMission, activePause, stats } = store
@@ -256,6 +257,20 @@ export default function SessionPage() {
     setLoading(false)
   }
 
+  async function handleSaveNote() {
+    if (!noteModal) return
+    setLoading(true)
+    const res = await fetch('/api/missions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: noteModal.missionId, notes: noteModal.text || null }),
+    })
+    const updated = await res.json()
+    store.updateMission(noteModal.missionId, updated)
+    setNoteModal(null)
+    setLoading(false)
+  }
+
   // ── Dériver l'état courant ────────────────────────────────
   const hasPad = !!session?.pad_connected_at
   const padDone = !!session?.pad_disconnected_at
@@ -332,6 +347,17 @@ export default function SessionPage() {
                 loading={loading}
               />
             </div>
+            <button
+              type="button"
+              onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
+            >
+              <MessageSquare size={14} />
+              {activeMission.notes
+                ? <span className="truncate text-zinc-400">{activeMission.notes}</span>
+                : <span>Ajouter une note…</span>
+              }
+            </button>
           </div>
         )}
 
@@ -426,21 +452,34 @@ export default function SessionPage() {
             <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">
               Missions ({missions.length})
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {missions.map(m => (
-                <div key={m.id} className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-400">
-                    #{m.mission_number} · {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
-                  </span>
-                  <div className="flex items-center gap-3 text-right">
-                    <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>
-                    <span className="text-zinc-500">{m.total_weight_kg}kg</span>
-                    {m.ended_at ? (
-                      <span className="text-emerald-400 text-xs">✓</span>
-                    ) : (
-                      <span className="text-blue-400 text-xs animate-pulse">⏱</span>
-                    )}
+                <div key={m.id} className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-400">
+                      #{m.mission_number} · {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
+                    </span>
+                    <div className="flex items-center gap-3 text-right">
+                      <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>
+                      <span className="text-zinc-500">{m.total_weight_kg}kg</span>
+                      {m.ended_at ? (
+                        <span className="text-emerald-400 text-xs">✓</span>
+                      ) : (
+                        <span className="text-blue-400 text-xs animate-pulse">⏱</span>
+                      )}
+                    </div>
                   </div>
+                  {m.notes && (
+                    <p className="text-xs text-zinc-500 pl-1 leading-relaxed">{m.notes}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
+                    className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors self-start"
+                  >
+                    <MessageSquare size={11} />
+                    {m.notes ? 'Modifier la note' : 'Ajouter une note'}
+                  </button>
                 </div>
               ))}
             </div>
@@ -483,6 +522,38 @@ export default function SessionPage() {
             onCancel={() => setShowProductionInput(false)}
             loading={loading}
           />
+        </Modal>
+      )}
+
+      {noteModal && (
+        <Modal title="Note de mission" onClose={() => setNoteModal(null)}>
+          <div className="flex flex-col gap-4">
+            <textarea
+              value={noteModal.text}
+              onChange={e => setNoteModal(n => n ? { ...n, text: e.target.value } : n)}
+              placeholder="Mon rôle C est tombé… j'ai trouvé des souris dans la palette 1/2J 3701…"
+              rows={6}
+              autoFocus
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all resize-none placeholder:text-zinc-600"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setNoteModal(null)}
+                className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNote}
+                disabled={loading}
+                className="py-4 rounded-xl bg-blue-600 text-white font-semibold border border-blue-500/30 hover:bg-blue-500 disabled:opacity-40 transition-colors"
+              >
+                {loading ? '…' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
