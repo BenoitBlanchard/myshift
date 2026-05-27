@@ -20,11 +20,11 @@ export function Modal({ title, onClose, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full sm:max-w-md bg-zinc-900 rounded-t-2xl sm:rounded-xl border border-zinc-800 p-6 pb-8 sm:pb-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm sm:block hidden" onClick={onClose} />
+      <div className="relative z-10 w-full h-full sm:h-auto sm:max-w-md bg-zinc-900 sm:rounded-xl border-0 sm:border sm:border-zinc-800 p-6 pb-8 sm:pb-6 overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold tracking-tight">{title}</h2>
           <button
