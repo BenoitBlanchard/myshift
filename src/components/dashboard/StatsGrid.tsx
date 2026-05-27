@@ -2,14 +2,14 @@
 
 import { ProductivityStats } from '@/types'
 import { StatCard } from './StatCard'
-import { formatDeadTime, formatDuration, formatLph, formatTime } from '@/lib/productivity'
+import { formatDeadTime, formatLph, formatTime } from '@/lib/productivity'
 
 interface StatsGridProps {
   stats: ProductivityStats | null
   isLive?: boolean
 }
 
-function lphColorName(lph: number | null, target: number): 'green' | 'amber' | 'red' | 'gray' {
+function lphColor(lph: number | null, target: number): 'green' | 'amber' | 'red' | 'gray' {
   if (lph === null) return 'gray'
   const r = lph / target
   if (r >= 1.05) return 'green'
@@ -17,31 +17,32 @@ function lphColorName(lph: number | null, target: number): 'green' | 'amber' | '
   return 'red'
 }
 
-function DeadTimeCard({
-  current,
-  total,
-  frozen,
+const textColors = {
+  green: 'text-emerald-400',
+  red:   'text-red-400',
+  amber: 'text-amber-400',
+  blue:  'text-blue-400',
+  gray:  'text-zinc-500',
+}
+
+function MiniCard({
+  label,
+  value,
+  sub,
+  color = 'gray',
+  border,
 }: {
-  current: number | null
-  total: number | null
-  frozen: boolean
+  label: string
+  value: string
+  sub?: string
+  color?: keyof typeof textColors
+  border?: string
 }) {
   return (
-    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Temps mort</span>
-        {frozen && (
-          <span className="text-[10px] text-zinc-600 font-medium">figé</span>
-        )}
-      </div>
-      <span className="text-3xl font-bold tabular-nums leading-none text-amber-400">
-        {current !== null ? formatDeadTime(current) : '—'}
-      </span>
-      {total !== null && (
-        <span className="text-[11px] text-zinc-600">
-          Total : {formatDeadTime(total)}
-        </span>
-      )}
+    <div className={`bg-zinc-900 rounded-xl px-3 py-2 border flex flex-col gap-0.5 ${border ?? 'border-zinc-800'}`}>
+      <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">{label}</span>
+      <span className={`text-xl font-bold tabular-nums leading-tight ${textColors[color]}`}>{value}</span>
+      {sub && <span className="text-[9px] text-zinc-600 leading-none">{sub}</span>}
     </div>
   )
 }
@@ -61,37 +62,44 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
     pad, theoretical, real, targetLph,
     diffLph, diffLinesTotal,
     projectedEndTime, projectedRemainingLines,
-    cushionLph, totalFinalLines,
+    totalFinalLines,
     currentDeadTimeMs, totalDeadTimeMs,
   } = stats
 
-  const hasMission = currentDeadTimeMs !== null
-  const isFrozen = hasMission && currentDeadTimeMs === totalDeadTimeMs
-    ? false
-    : hasMission && (totalDeadTimeMs ?? 0) > (currentDeadTimeMs ?? 0)
-
-  // Frozen when an active mission is running (current segment not ticking)
-  // We can detect it by checking if total > current (past segments exist and current is frozen)
-  // Actually simpler: frozen = active mission exists, which means current < total OR current is the pre-mission gap
-  // The store computes this client-side — we just check if stats say mission is active via projectedRemainingLines
   const missionActive = projectedRemainingLines !== null
+
+  // Avance/retard exprimé en temps
+  const cushionPositive = (diffLinesTotal ?? 0) >= 0
+  const cushionMs = diffLinesTotal !== null
+    ? Math.abs(diffLinesTotal / targetLph) * 3600 * 1000
+    : null
 
   if (!totalFinalLines) {
     return (
       <div className="flex flex-col gap-3">
-        <DeadTimeCard
-          current={currentDeadTimeMs}
-          total={totalDeadTimeMs}
-          frozen={missionActive}
-        />
-        {projectedEndTime && (
-          <StatCard
-            label="Fin mission"
-            value={formatTime(projectedEndTime)}
-            sublabel={projectedRemainingLines != null ? `~${projectedRemainingLines} lignes restantes (objectif)` : undefined}
-            color="blue"
-          />
+        {isLive && (
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs text-emerald-400 font-medium">En direct</span>
+          </div>
         )}
+        <div className="grid grid-cols-2 gap-2">
+          <MiniCard
+            label="Temps mort"
+            value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
+            sub={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
+            color="amber"
+            border={missionActive ? 'border-zinc-800' : 'border-amber-900/40'}
+          />
+          {projectedEndTime && (
+            <MiniCard
+              label="Fin mission"
+              value={formatTime(projectedEndTime)}
+              sub={projectedRemainingLines != null ? `~${projectedRemainingLines} lignes` : undefined}
+              color="blue"
+            />
+          )}
+        </div>
       </div>
     )
   }
@@ -108,46 +116,54 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         </div>
       )}
 
-      {/* 3 métriques */}
+      {/* 3 métriques LPH */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Pad"       value={formatLph(pad)}       sublabel="lignes/h" color={lphColorName(pad, targetLph)} />
-        <StatCard label="Théorique" value={formatLph(theoretical)} sublabel="lignes/h" color={lphColorName(theoretical, targetLph)} />
-        <StatCard label="Réel"      value={formatLph(real)}      sublabel="lignes/h" color={lphColorName(real, targetLph)} />
+        <StatCard label="Pad"       value={formatLph(pad)}         sublabel="l/h" color={lphColor(pad, targetLph)} />
+        <StatCard label="Théorique" value={formatLph(theoretical)} sublabel="l/h" color={lphColor(theoretical, targetLph)} />
+        <StatCard label="Réel"      value={formatLph(real)}        sublabel="l/h" color={lphColor(real, targetLph)} />
       </div>
 
-      {/* Écart + projection */}
-      <div className="grid grid-cols-2 gap-2">
-        <StatCard
-          label="Écart objectif"
-          value={diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
-          sublabel={diffLinesTotal !== null ? `${linesSign}${diffLinesTotal} lignes` : undefined}
-          color={diffLph === null ? 'gray' : diffLph >= 0 ? 'green' : 'red'}
-        />
-        <StatCard
-          label="Fin mission"
-          value={formatTime(projectedEndTime)}
-          sublabel={projectedRemainingLines != null ? `~${projectedRemainingLines} lignes restantes` : undefined}
-          color="blue"
-        />
-      </div>
+      {/* Écart LPH | Écart lignes | Stack (avance/retard + fin mission + temps mort) */}
+      <div className="grid grid-cols-3 gap-2 items-stretch">
 
-      {/* Coussin + temps mort */}
-      <div className="grid grid-cols-2 gap-2">
-        <StatCard
-          label="Coussin"
-          value={cushionLph !== null ? `${diffSign}${formatLph(cushionLph)} l/h` : '—'}
-          sublabel={cushionLph !== null && cushionLph > 0
-            ? `Relâcher jusqu'à ${targetLph}l/h`
-            : cushionLph !== null && cushionLph < 0
-            ? 'Accélère pour l\'objectif'
-            : undefined}
-          color={cushionLph === null ? 'gray' : cushionLph >= 0 ? 'green' : 'red'}
-        />
-        <DeadTimeCard
-          current={currentDeadTimeMs}
-          total={totalDeadTimeMs}
-          frozen={missionActive}
-        />
+        {/* Col 1 — Écart LPH */}
+        <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-1">
+          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">Écart</span>
+          <span className={`text-2xl font-bold tabular-nums leading-tight ${textColors[lphColor(diffLph, 0) === 'gray' ? 'gray' : (diffLph ?? 0) >= 0 ? 'green' : 'red']}`}>
+            {diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
+          </span>
+          <span className="text-[10px] text-zinc-600 leading-none">l/h</span>
+        </div>
+
+        {/* Col 2 — Écart lignes */}
+        <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-1">
+          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">Lignes</span>
+          <span className={`text-2xl font-bold tabular-nums leading-tight ${diffLinesTotal === null ? textColors.gray : diffLinesTotal >= 0 ? textColors.green : textColors.red}`}>
+            {diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
+          </span>
+          <span className="text-[10px] text-zinc-600 leading-none">vs objectif</span>
+        </div>
+
+        {/* Col 3 — Stack : avance/retard mm:ss + fin mission + temps mort */}
+        <div className="flex flex-col gap-2">
+          <MiniCard
+            label={cushionPositive ? 'Avance' : 'Retard'}
+            value={cushionMs !== null ? `${cushionPositive ? '+' : '−'}${formatDeadTime(cushionMs)}` : '—'}
+            color={cushionMs === null ? 'gray' : cushionPositive ? 'green' : 'red'}
+            border={cushionPositive ? 'border-emerald-900/40' : 'border-red-900/40'}
+          />
+          <MiniCard
+            label="Fin mission"
+            value={formatTime(projectedEndTime)}
+            color="blue"
+          />
+          <MiniCard
+            label="Temps mort"
+            value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
+            sub={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
+            color="amber"
+          />
+        </div>
       </div>
     </div>
   )
