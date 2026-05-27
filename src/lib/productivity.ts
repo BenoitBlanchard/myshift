@@ -101,9 +101,15 @@ export function calcStats(
   const hasSnapshot = !!latestSnapshot
   const snapshotLines = latestSnapshot?.total_final_lines ?? 0
 
-  // Missions terminées après le dernier snapshot : leurs lignes pad s'ajoutent au total
+  // Missions terminées dont le DÉMARRAGE est postérieur au dernier snapshot.
+  // Filtrer sur started_at (pas ended_at) évite de double-compter les lignes déjà
+  // incluses dans le snapshot pour une mission qui était en cours au moment de l'injection.
   const extraLines = missions
-    .filter(m => m.ended_at && (!latestSnapshot || new Date(m.ended_at) > new Date(latestSnapshot.recorded_at)))
+    .filter(m =>
+      m.ended_at &&
+      m.started_at &&
+      (!latestSnapshot || new Date(m.started_at) > new Date(latestSnapshot.recorded_at))
+    )
     .reduce((acc, m) => acc + m.total_pad_lines, 0)
   const effectiveTotalLines = snapshotLines + extraLines || null
 
