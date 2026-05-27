@@ -25,8 +25,6 @@ export default function SessionPage() {
   const [showProductionInput, setShowProductionInput] = useState(false)
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
-  const [showEndMission, setShowEndMission] = useState(false)
-  const [endMissionLines, setEndMissionLines] = useState(0)
   const [tick, setTick] = useState(0)
 
   const { session, missions, pauses, snapshots, profile, activeMission, activePause, stats } = store
@@ -150,28 +148,17 @@ export default function SessionPage() {
     setLoading(false)
   }
 
-  function openEndMission() {
-    setEndMissionLines(stats?.projectedRemainingLines ?? 0)
-    setShowEndMission(true)
-  }
-
   async function handleEndMission() {
     if (!activeMission) return
     setLoading(true)
     const now = new Date().toISOString()
-    const newTotal = activeMission.total_pad_lines + (endMissionLines > 0 ? endMissionLines : 0)
     const res = await fetch('/api/missions', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: activeMission.id,
-        ended_at: now,
-        total_pad_lines: newTotal,
-      }),
+      body: JSON.stringify({ id: activeMission.id, ended_at: now }),
     })
     const updated = await res.json()
     store.updateMission(activeMission.id, updated)
-    setShowEndMission(false)
     setLoading(false)
   }
 
@@ -360,7 +347,7 @@ export default function SessionPage() {
                 label="Fin mission"
                 icon={Square}
                 variant="danger"
-                onClick={openEndMission}
+                onClick={handleEndMission}
                 loading={loading}
               />
             </div>
@@ -499,10 +486,12 @@ export default function SessionPage() {
                 {Math.round(missions.reduce((a, m) => a + m.total_weight_kg, 0))}kg
               </span>
             </div>
-            {lastSnap && (
+            {(stats?.totalFinalLines != null || lastSnap) && (
               <div className="mt-1 flex justify-between text-sm">
                 <span className="text-zinc-500">Lignes finales (pad)</span>
-                <span className="text-blue-400 font-semibold tabular-nums">{lastSnap.total_final_lines}</span>
+                <span className="text-blue-400 font-semibold tabular-nums">
+                  {stats?.totalFinalLines ?? lastSnap?.total_final_lines}
+                </span>
               </div>
             )}
           </div>
@@ -532,69 +521,6 @@ export default function SessionPage() {
             onCancel={() => setShowProductionInput(false)}
             loading={loading}
           />
-        </Modal>
-      )}
-
-      {showEndMission && activeMission && (
-        <Modal title="Fin de mission" onClose={() => setShowEndMission(false)}>
-          <div className="flex flex-col gap-5">
-            <div>
-              <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">
-                Lignes restantes à ajouter
-              </p>
-              <p className="text-xs text-zinc-600">
-                Lignes pad de cette mission : <span className="text-zinc-400 font-semibold">{activeMission.total_pad_lines}</span>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setEndMissionLines(v => Math.max(0, v - 1))}
-                disabled={endMissionLines <= 0}
-                className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 disabled:opacity-25 transition-colors flex-shrink-0"
-              >
-                −
-              </button>
-              <div className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-center">
-                <span className="text-4xl font-bold text-white tabular-nums">{endMissionLines}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEndMissionLines(v => v + 1)}
-                className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 disabled:opacity-25 transition-colors flex-shrink-0"
-              >
-                +
-              </button>
-            </div>
-
-            {endMissionLines > 0 && (
-              <p className="text-sm text-zinc-500 text-center">
-                Nouveau total pad :{' '}
-                <span className="text-white font-semibold">
-                  {activeMission.total_pad_lines + endMissionLines} lignes
-                </span>
-              </p>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setShowEndMission(false)}
-                className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleEndMission}
-                disabled={loading}
-                className="py-4 rounded-xl bg-red-700 text-white font-semibold border border-red-600/50 hover:bg-red-600 disabled:opacity-40 transition-colors"
-              >
-                {loading ? '…' : 'Terminer'}
-              </button>
-            </div>
-          </div>
         </Modal>
       )}
 
