@@ -123,49 +123,41 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         <StatCard label="Réel"      value={formatLph(real)}        sublabel="l/h" color={lphColor(real, targetLph)} />
       </div>
 
-      {/* Performance (2 cols) | Stack droite (1 col) */}
+      {/* Ligne 2 — Avance/Retard · Fin mission · Temps mort (même taille que ligne 1) */}
       <div className="grid grid-cols-3 gap-2">
+        <StatCard
+          label={cushionPositive ? 'Avance' : 'Retard'}
+          value={cushionMs !== null ? `${cushionPositive ? '+' : '−'}${formatDeadTime(cushionMs)}` : '—'}
+          color={cushionMs === null ? 'gray' : cushionPositive ? 'green' : 'red'}
+        />
+        <StatCard
+          label="Fin mission"
+          value={formatTime(projectedEndTime)}
+          sublabel={projectedRemainingLines != null ? `~${projectedRemainingLines} lignes` : undefined}
+          color="blue"
+        />
+        <StatCard
+          label="Temps mort"
+          value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
+          sublabel={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
+          color="amber"
+        />
+      </div>
 
-        {/* Performance — écart LPH + écart lignes côte à côte */}
-        <div className="col-span-2 bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Écart</span>
-              <span className={`text-4xl font-bold tabular-nums leading-none ${diffLph === null ? textColors.gray : (diffLph >= 0 ? textColors.green : textColors.red)}`}>
-                {diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
-              </span>
-              <span className="text-[11px] text-zinc-600">l/h objectif</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Lignes</span>
-              <span className={`text-4xl font-bold tabular-nums leading-none ${diffLinesTotal === null ? textColors.gray : diffLinesTotal >= 0 ? textColors.green : textColors.red}`}>
-                {diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
-              </span>
-              <span className="text-[11px] text-zinc-600">vs objectif</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Stack droite : avance/retard + fin mission + temps mort */}
-        <div className="flex flex-col gap-2">
-          <MiniCard
-            label={cushionPositive ? 'Avance' : 'Retard'}
-            value={cushionMs !== null ? `${cushionPositive ? '+' : '−'}${formatDeadTime(cushionMs)}` : '—'}
-            color={cushionMs === null ? 'gray' : cushionPositive ? 'green' : 'red'}
-            border={cushionPositive ? 'border-emerald-900/40' : 'border-red-900/40'}
-          />
-          <MiniCard
-            label="Fin mission"
-            value={formatTime(projectedEndTime)}
-            color="blue"
-          />
-          <MiniCard
-            label="Temps mort"
-            value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
-            sub={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
-            color="amber"
-          />
-        </div>
+      {/* Ligne 3 — Écart l/h · Lignes */}
+      <div className="grid grid-cols-2 gap-2">
+        <StatCard
+          label="Écart"
+          value={diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
+          sublabel="l/h vs objectif"
+          color={diffLph === null ? 'gray' : diffLph >= 0 ? 'green' : 'red'}
+        />
+        <StatCard
+          label="Lignes"
+          value={diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
+          sublabel="vs objectif"
+          color={diffLinesTotal === null ? 'gray' : diffLinesTotal >= 0 ? 'green' : 'red'}
+        />
       </div>
     </div>
   )
