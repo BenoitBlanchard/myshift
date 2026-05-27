@@ -7,6 +7,7 @@ import {
   Zap, AlarmClock, Truck, MessageSquare
 } from 'lucide-react'
 import { useSessionStore } from '@/store/session'
+import { useWakeLock } from '@/hooks/useWakeLock'
 import { TopBar } from '@/components/layout/TopBar'
 import { BigButton } from '@/components/ui/BigButton'
 import { Modal } from '@/components/ui/Modal'
@@ -274,6 +275,9 @@ export default function SessionPage() {
   // ── Dériver l'état courant ────────────────────────────────
   const hasPad = !!session?.pad_connected_at
   const padDone = !!session?.pad_disconnected_at
+
+  // Empêche la mise en veille pendant la session active (pad connecté, pas encore déconnecté)
+  useWakeLock(hasPad && !padDone)
   const isInMission = !!activeMission
   const isPaused = !!activePause
   const lastSnap = snapshots.length
