@@ -13,14 +13,14 @@ export default function SetupPage() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
 
-  async function handleSetup() {
-    if (pin.length !== 4) return
+  async function handleSetup(currentPin: string) {
+    if (currentPin.length !== 4) return
     setLoading(true)
     setError('')
     const res = await fetch('/api/setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pseudo, pin }),
+      body: JSON.stringify({ pseudo, pin: currentPin }),
     })
     if (res.ok) {
       setDone(true)
@@ -81,7 +81,7 @@ export default function SetupPage() {
             value={pin}
             onChange={p => {
               setPin(p)
-              if (p.length === 4) handleSetup()
+              if (p.length === 4) handleSetup(p)
             }}
           />
           {loading && <p className="text-gray-400 text-sm animate-pulse">Création en cours…</p>}
