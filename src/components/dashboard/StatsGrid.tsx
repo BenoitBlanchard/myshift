@@ -144,8 +144,8 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         />
       </div>
 
-      {/* Ligne 3 — Fin mission · Temps mort */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Ligne 3 — Fin mission · Temps mort · Lignes totales */}
+      <div className="grid grid-cols-3 gap-2">
         <StatCard
           label="Fin mission"
           value={formatTime(projectedEndTime)}
@@ -157,6 +157,12 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
           value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
           sublabel={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
           color="amber"
+        />
+        <StatCard
+          label="Lignes totales"
+          value={totalFinalLines !== null ? String(totalFinalLines) : '—'}
+          sublabel="lignes finales jour"
+          color="gray"
         />
       </div>
     </div>
