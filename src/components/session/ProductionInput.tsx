@@ -64,7 +64,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
             type="button"
             onClick={() => setValue(v => Math.max(min, v - 1))}
             disabled={value <= min}
-            className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 active:bg-zinc-900 disabled:opacity-25 transition-colors flex-shrink-0"
+            className="w-16 h-16 rounded-2xl bg-zinc-800/60 border border-white/[0.08] text-3xl font-bold text-zinc-300 hover:bg-zinc-700/70 active:scale-[0.94] disabled:opacity-25 transition-all flex-shrink-0"
           >
             −
           </button>
@@ -78,13 +78,13 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
               onBlur={commitEdit}
               onKeyDown={e => e.key === 'Enter' && commitEdit()}
               autoFocus
-              className="flex-1 bg-zinc-800 border-2 border-zinc-400 rounded-xl px-4 py-3 text-white text-center text-4xl font-bold focus:outline-none transition-all"
+              className="flex-1 bg-zinc-800/60 border-2 border-zinc-400/50 rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold focus:outline-none transition-all"
             />
           ) : (
             <button
               type="button"
               onClick={() => { setEditStr(String(value)); setEditing(true) }}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-center text-4xl font-bold hover:border-zinc-500 active:bg-zinc-900 transition-colors"
+              className="flex-1 bg-zinc-800/60 border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold hover:border-white/20 active:scale-[0.97] transition-all"
             >
               {value}
             </button>
@@ -94,7 +94,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
             type="button"
             onClick={() => setValue(v => Math.min(max, v + 1))}
             disabled={value >= max}
-            className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 active:bg-zinc-900 disabled:opacity-25 transition-colors flex-shrink-0"
+            className="w-16 h-16 rounded-2xl bg-zinc-800/60 border border-white/[0.08] text-3xl font-bold text-zinc-300 hover:bg-zinc-700/70 active:scale-[0.94] disabled:opacity-25 transition-all flex-shrink-0"
           >
             +
           </button>
@@ -140,7 +140,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
           value={remaining}
           onChange={e => setRemaining(e.target.value)}
           placeholder="ex: 80"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
+          className="w-full bg-zinc-800/60 border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
         />
         {remainingNum !== null && delta > 0 && (
           <p className="text-xs text-zinc-500 text-center">
@@ -155,7 +155,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
         <button
           type="button"
           onClick={onCancel}
-          className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
+          className="py-4 rounded-2xl bg-zinc-800/60 text-zinc-300 font-semibold border border-white/[0.08] hover:bg-zinc-700/70 active:scale-[0.97] transition-all"
         >
           Annuler
         </button>
@@ -163,7 +163,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
           type="button"
           onClick={() => value > min && onSubmit(value, remainingNum)}
           disabled={value <= min || loading}
-          className="py-4 rounded-xl bg-blue-600 text-white font-semibold border border-blue-500/30 hover:bg-blue-500 disabled:opacity-40 transition-colors"
+          className="py-4 rounded-2xl bg-gradient-to-b from-blue-500 to-blue-700 text-white font-semibold border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-40 active:scale-[0.97] transition-all"
         >
           {loading ? '…' : 'Valider'}
         </button>

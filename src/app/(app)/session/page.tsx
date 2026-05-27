@@ -292,7 +292,7 @@ export default function SessionPage() {
 
         {/* En pause — bannière prominente */}
         {isPaused && (
-          <div className="bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-amber-950/60 to-zinc-900/0 border border-amber-800/40 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_30px_rgba(245,158,11,0.06)]">
             <div>
               <p className="text-amber-400 font-semibold text-base">En pause</p>
               <p className="text-amber-300/70 text-sm">
@@ -313,7 +313,7 @@ export default function SessionPage() {
 
         {/* Mission active */}
         {isInMission && !isPaused && (
-          <div className="bg-blue-950/30 border border-blue-800/50 rounded-xl p-4">
+          <div className="bg-gradient-to-br from-blue-950/60 via-blue-950/20 to-zinc-900/0 border border-blue-800/40 rounded-2xl p-4 shadow-[0_0_40px_rgba(59,130,246,0.08)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex-1">
                 <p className="text-blue-300 font-semibold text-base">
@@ -354,7 +354,7 @@ export default function SessionPage() {
             <button
               type="button"
               onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
-              className="w-full flex items-center gap-2.5 px-4 py-3.5 mt-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-3.5 mt-2 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 text-sm transition-all"
             >
               <MessageSquare size={16} className="shrink-0" />
               {activeMission.notes
@@ -371,7 +371,7 @@ export default function SessionPage() {
         )}
 
         {/* Timeline */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 flex flex-col gap-3">
+        <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4 flex flex-col gap-3">
           <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Timeline</p>
 
           <div className="grid grid-cols-2 gap-2">
@@ -444,7 +444,7 @@ export default function SessionPage() {
 
         {/* Résumé missions */}
         {missions.length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+          <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
             <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">
               Missions ({missions.length})
             </p>
@@ -539,7 +539,7 @@ export default function SessionPage() {
               <button
                 type="button"
                 onClick={() => setNoteModal(null)}
-                className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
+                className="py-4 rounded-2xl bg-zinc-800/60 text-zinc-300 font-semibold border border-white/[0.08] hover:bg-zinc-700/70 active:scale-[0.97] transition-all"
               >
                 Annuler
               </button>
@@ -547,7 +547,7 @@ export default function SessionPage() {
                 type="button"
                 onClick={handleSaveNote}
                 disabled={loading}
-                className="py-4 rounded-xl bg-blue-600 text-white font-semibold border border-blue-500/30 hover:bg-blue-500 disabled:opacity-40 transition-colors"
+                className="py-4 rounded-2xl bg-gradient-to-b from-blue-500 to-blue-700 text-white font-semibold border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-40 active:scale-[0.97] transition-all"
               >
                 {loading ? '…' : 'Enregistrer'}
               </button>
@@ -569,7 +569,7 @@ export default function SessionPage() {
                   <button
                     key={ps.id}
                     onClick={() => handleStartPause(ps.is_system_deducted)}
-                    className="text-left bg-gray-800 hover:bg-gray-700 rounded-xl px-4 py-3 flex justify-between items-center"
+                    className="text-left bg-zinc-800/60 hover:bg-zinc-700/70 border border-white/[0.06] rounded-2xl px-4 py-3 flex justify-between items-center active:scale-[0.98] transition-all"
                   >
                     <span className="text-white font-medium">{ps.name}</span>
                     <span className="text-gray-400 text-sm">
@@ -584,7 +584,7 @@ export default function SessionPage() {
                 ))}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-800">
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.06]">
               <BigButton
                 label="Pause non décomptée"
                 sublabel="14h / 18h"

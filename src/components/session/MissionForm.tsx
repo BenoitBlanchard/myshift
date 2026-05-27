@@ -25,7 +25,7 @@ function SupportRow({
   onChange: (field: string, val: number | undefined) => void
 }) {
   return (
-    <div className="bg-zinc-800/50 rounded-xl p-3 flex flex-col gap-2 border border-zinc-700/50">
+    <div className="bg-zinc-800/40 rounded-2xl p-3 flex flex-col gap-2 border border-white/[0.07]">
       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{label}</span>
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-1.5">
@@ -35,7 +35,7 @@ function SupportRow({
             inputMode="numeric"
             min="0"
             placeholder="0"
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
+            className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
             onChange={e => onChange('pad_lines', e.target.value ? parseInt(e.target.value) : 0)}
           />
         </label>
@@ -47,7 +47,7 @@ function SupportRow({
             min="0"
             step="0.1"
             placeholder="0"
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
+            className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
             onChange={e => onChange('weight_kg', e.target.value ? parseFloat(e.target.value) : 0)}
           />
         </label>
@@ -116,8 +116,8 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
               className={cn(
                 'py-3 rounded-xl font-semibold text-base transition-colors border',
                 type === t
-                  ? 'bg-blue-600 text-white border-blue-500'
-                  : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
+                  ? 'bg-gradient-to-b from-blue-500 to-blue-700 text-white border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)]'
+                  : 'bg-zinc-800/60 text-zinc-400 border-white/[0.06] hover:bg-zinc-700/70'
               )}
             >
               {t === 'role' ? 'Rôle' : 'Palette'}
@@ -137,8 +137,8 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
               className={cn(
                 'flex-1 py-3 rounded-xl font-bold text-xl transition-colors border',
                 count === n
-                  ? 'bg-blue-600 text-white border-blue-500'
-                  : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
+                  ? 'bg-gradient-to-b from-blue-500 to-blue-700 text-white border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)]'
+                  : 'bg-zinc-800/60 text-zinc-400 border-white/[0.06] hover:bg-zinc-700/70'
               )}
             >
               {n}
@@ -164,14 +164,14 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
       <div className="grid grid-cols-2 gap-3 pt-1">
         <button
           onClick={onCancel}
-          className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
+          className="py-4 rounded-2xl bg-zinc-800/60 text-zinc-300 font-semibold border border-white/[0.08] hover:bg-zinc-700/70 active:scale-[0.97] transition-all"
         >
           Annuler
         </button>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="py-4 rounded-xl bg-emerald-700 text-white font-semibold border border-emerald-600/50 hover:bg-emerald-600 disabled:opacity-40 transition-colors"
+          className="py-4 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-semibold border border-emerald-400/20 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:from-emerald-400 hover:to-emerald-600 disabled:opacity-40 active:scale-[0.97] transition-all"
         >
           {loading ? '…' : 'Démarrer'}
         </button>

@@ -39,7 +39,7 @@ function MiniCard({
   border?: string
 }) {
   return (
-    <div className={`bg-zinc-900 rounded-xl px-3 py-2 border flex flex-col gap-0.5 ${border ?? 'border-zinc-800'}`}>
+    <div className={`bg-zinc-900 rounded-2xl px-3 py-2 border-t-2 border flex flex-col gap-0.5 ${border ?? 'border-white/[0.06]'}`}>
       <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">{label}</span>
       <span className={`text-xl font-bold tabular-nums leading-tight ${textColors[color]}`}>{value}</span>
       {sub && <span className="text-[9px] text-zinc-600 leading-none">{sub}</span>}

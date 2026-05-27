@@ -16,11 +16,11 @@ interface BigButtonProps {
 }
 
 const variants = {
-  primary:  'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white border border-blue-500/30',
-  success:  'bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white border border-emerald-600/30',
-  warning:  'bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white border border-amber-500/30',
-  danger:   'bg-red-700 hover:bg-red-600 active:bg-red-800 text-white border border-red-600/30',
-  ghost:    'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-950 text-zinc-100 border border-zinc-700',
+  primary: 'bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white border border-blue-400/20 shadow-[0_0_24px_rgba(59,130,246,0.3),0_1px_0_rgba(255,255,255,0.15)_inset]',
+  success: 'bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white border border-emerald-400/20 shadow-[0_0_24px_rgba(16,185,129,0.25),0_1px_0_rgba(255,255,255,0.12)_inset]',
+  warning: 'bg-gradient-to-b from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 text-white border border-amber-400/20 shadow-[0_0_24px_rgba(245,158,11,0.25),0_1px_0_rgba(255,255,255,0.12)_inset]',
+  danger:  'bg-gradient-to-b from-red-500 to-red-700 hover:from-red-400 hover:to-red-600 text-white border border-red-400/20 shadow-[0_0_24px_rgba(239,68,68,0.25),0_1px_0_rgba(255,255,255,0.12)_inset]',
+  ghost:   'bg-zinc-800/60 hover:bg-zinc-700/70 text-zinc-100 border border-white/[0.08] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset]',
 }
 
 export function BigButton({
@@ -39,10 +39,10 @@ export function BigButton({
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(
-        'flex flex-col items-center justify-center gap-1 rounded-xl font-semibold transition-colors select-none',
+        'flex flex-col items-center justify-center gap-1 rounded-2xl font-semibold transition-all duration-150 select-none active:scale-[0.96]',
         size === 'lg' ? 'min-h-[80px] px-6 py-4 text-xl' : 'min-h-[64px] px-4 py-3 text-base',
         variants[variant],
-        (disabled || loading) && 'opacity-40 cursor-not-allowed',
+        (disabled || loading) && 'opacity-40 cursor-not-allowed active:scale-100',
         className
       )}
     >

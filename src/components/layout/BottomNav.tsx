@@ -17,8 +17,8 @@ export function BottomNav() {
   const path = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950 border-t border-zinc-800 pb-safe">
-      <div className="flex">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 pb-safe">
+      <div className="mx-3 mb-3 rounded-2xl bg-zinc-900/85 backdrop-blur-2xl border border-white/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.6),0_-1px_0_rgba(255,255,255,0.03)_inset] flex overflow-hidden">
         {NAV.map(({ href, icon: Icon, label }) => {
           const active = path.startsWith(href)
           return (
@@ -26,13 +26,17 @@ export function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                'flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors',
-                active ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'
+                'flex flex-1 flex-col items-center gap-0.5 pt-3 pb-2.5 transition-all duration-200',
+                active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
               )}
             >
-              <Icon size={22} strokeWidth={active ? 2.5 : 1.75} />
-              <span>{label}</span>
-              {active && <span className="absolute bottom-0 w-6 h-0.5 bg-blue-500 rounded-full" />}
+              <div className={cn(
+                'flex items-center justify-center w-9 h-6 rounded-lg transition-all duration-200',
+                active && 'bg-white/10'
+              )}>
+                <Icon size={18} strokeWidth={active ? 2.5 : 1.75} />
+              </div>
+              <span className="text-[10px] font-semibold tracking-wide">{label}</span>
             </Link>
           )
         })}
