@@ -3,7 +3,7 @@ export function today(): string {
 }
 
 export function fakeEmail(pseudo: string): string {
-  return `${pseudo.toLowerCase().replace(/\s+/g, '_')}@myshift.internal`
+  return `${pseudo.toLowerCase().replace(/\s+/g, '_')}@myshift.app`
 }
 
 export function cn(...classes: (string | undefined | false | null)[]): string {
