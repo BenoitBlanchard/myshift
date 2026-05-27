@@ -505,6 +505,7 @@ export default function SessionPage() {
         <Modal title="Nouvelle mission" onClose={() => setShowMissionForm(false)}>
           <MissionForm
             missionNumber={(missions.length) + 1}
+            deadTimeMs={stats?.currentDeadTimeMs}
             onSubmit={handleStartMission}
             onCancel={() => setShowMissionForm(false)}
             loading={loading}

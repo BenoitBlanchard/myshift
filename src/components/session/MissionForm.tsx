@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { MissionFormData, SupportType } from '@/types'
 import { cn } from '@/lib/utils'
+import { formatDeadTime } from '@/lib/productivity'
 
 interface MissionFormProps {
   missionNumber: number
+  deadTimeMs?: number | null
   onSubmit: (data: MissionFormData) => void
   onCancel: () => void
   loading?: boolean
@@ -54,7 +56,7 @@ function SupportRow({
   )
 }
 
-export function MissionForm({ missionNumber, onSubmit, onCancel, loading }: MissionFormProps) {
+export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loading }: MissionFormProps) {
   const [type, setType] = useState<SupportType>('role')
   const [count, setCount] = useState(1)
   const [supports, setSupports] = useState<Array<{
@@ -90,7 +92,18 @@ export function MissionForm({ missionNumber, onSubmit, onCancel, loading }: Miss
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-zinc-500 font-medium">Mission #{missionNumber}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-zinc-500 font-medium">Mission #{missionNumber}</p>
+        {deadTimeMs != null && (
+          <div className="flex items-center gap-1.5 bg-amber-950/50 border border-amber-800/50 rounded-lg px-2.5 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-amber-400 text-xs font-mono font-semibold tabular-nums">
+              {formatDeadTime(deadTimeMs)}
+            </span>
+            <span className="text-amber-600 text-[10px]">mort</span>
+          </div>
+        )}
+      </div>
 
       {/* Type */}
       <div>
