@@ -123,13 +123,29 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         <StatCard label="Réel"      value={formatLph(real)}        sublabel="l/h" color={lphColor(real, targetLph)} />
       </div>
 
-      {/* Ligne 2 — Avance/Retard · Fin mission · Temps mort (même taille que ligne 1) */}
+      {/* Ligne 2 — Avance/Retard · Écart · Lignes */}
       <div className="grid grid-cols-3 gap-2">
         <StatCard
           label={cushionPositive ? 'Avance' : 'Retard'}
           value={cushionMs !== null ? `${cushionPositive ? '+' : '−'}${formatDeadTime(cushionMs)}` : '—'}
           color={cushionMs === null ? 'gray' : cushionPositive ? 'green' : 'red'}
         />
+        <StatCard
+          label="Écart"
+          value={diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
+          sublabel="l/h"
+          color={diffLph === null ? 'gray' : diffLph >= 0 ? 'green' : 'red'}
+        />
+        <StatCard
+          label="Lignes"
+          value={diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
+          sublabel="vs obj"
+          color={diffLinesTotal === null ? 'gray' : diffLinesTotal >= 0 ? 'green' : 'red'}
+        />
+      </div>
+
+      {/* Ligne 3 — Fin mission · Temps mort */}
+      <div className="grid grid-cols-2 gap-2">
         <StatCard
           label="Fin mission"
           value={formatTime(projectedEndTime)}
@@ -141,22 +157,6 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
           value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
           sublabel={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
           color="amber"
-        />
-      </div>
-
-      {/* Ligne 3 — Écart l/h · Lignes */}
-      <div className="grid grid-cols-2 gap-2">
-        <StatCard
-          label="Écart"
-          value={diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
-          sublabel="l/h vs objectif"
-          color={diffLph === null ? 'gray' : diffLph >= 0 ? 'green' : 'red'}
-        />
-        <StatCard
-          label="Lignes"
-          value={diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
-          sublabel="vs objectif"
-          color={diffLinesTotal === null ? 'gray' : diffLinesTotal >= 0 ? 'green' : 'red'}
         />
       </div>
     </div>
