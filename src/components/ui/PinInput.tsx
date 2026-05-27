@@ -41,6 +41,7 @@ export function PinInput({ value, onChange, maxLength = 4 }: PinInputProps) {
         {KEYS.map((key, i) => (
           <button
             key={i}
+            type="button"
             onClick={() => key && press(key)}
             disabled={!key}
             className={cn(
