@@ -354,9 +354,9 @@ export default function SessionPage() {
             <button
               type="button"
               onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-3.5 mt-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
             >
-              <MessageSquare size={14} />
+              <MessageSquare size={16} className="shrink-0" />
               {activeMission.notes
                 ? <span className="truncate text-zinc-400">{activeMission.notes}</span>
                 : <span>Ajouter une note…</span>
