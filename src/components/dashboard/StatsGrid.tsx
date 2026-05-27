@@ -123,28 +123,30 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         <StatCard label="Réel"      value={formatLph(real)}        sublabel="l/h" color={lphColor(real, targetLph)} />
       </div>
 
-      {/* Écart LPH | Écart lignes | Stack (avance/retard + fin mission + temps mort) */}
-      <div className="grid grid-cols-3 gap-2 items-stretch">
+      {/* Performance (2 cols) | Stack droite (1 col) */}
+      <div className="grid grid-cols-3 gap-2">
 
-        {/* Col 1 — Écart LPH */}
-        <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-1">
-          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">Écart</span>
-          <span className={`text-2xl font-bold tabular-nums leading-tight ${textColors[lphColor(diffLph, 0) === 'gray' ? 'gray' : (diffLph ?? 0) >= 0 ? 'green' : 'red']}`}>
-            {diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
-          </span>
-          <span className="text-[10px] text-zinc-600 leading-none">l/h</span>
+        {/* Performance — écart LPH + écart lignes côte à côte */}
+        <div className="col-span-2 bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Écart</span>
+              <span className={`text-4xl font-bold tabular-nums leading-none ${diffLph === null ? textColors.gray : (diffLph >= 0 ? textColors.green : textColors.red)}`}>
+                {diffLph !== null ? `${diffSign}${formatLph(diffLph)}` : '—'}
+              </span>
+              <span className="text-[11px] text-zinc-600">l/h objectif</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Lignes</span>
+              <span className={`text-4xl font-bold tabular-nums leading-none ${diffLinesTotal === null ? textColors.gray : diffLinesTotal >= 0 ? textColors.green : textColors.red}`}>
+                {diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
+              </span>
+              <span className="text-[11px] text-zinc-600">vs objectif</span>
+            </div>
+          </div>
         </div>
 
-        {/* Col 2 — Écart lignes */}
-        <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800 flex flex-col gap-1">
-          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest leading-none">Lignes</span>
-          <span className={`text-2xl font-bold tabular-nums leading-tight ${diffLinesTotal === null ? textColors.gray : diffLinesTotal >= 0 ? textColors.green : textColors.red}`}>
-            {diffLinesTotal !== null ? `${linesSign}${diffLinesTotal}` : '—'}
-          </span>
-          <span className="text-[10px] text-zinc-600 leading-none">vs objectif</span>
-        </div>
-
-        {/* Col 3 — Stack : avance/retard mm:ss + fin mission + temps mort */}
+        {/* Stack droite : avance/retard + fin mission + temps mort */}
         <div className="flex flex-col gap-2">
           <MiniCard
             label={cushionPositive ? 'Avance' : 'Retard'}
