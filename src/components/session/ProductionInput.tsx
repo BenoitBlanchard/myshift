@@ -5,31 +5,45 @@ import { ProductivityStats } from '@/types'
 
 interface ProductionInputProps {
   currentLines: number | null
+  maxLines: number
   stats: ProductivityStats | null
   onSubmit: (totalLines: number, remainingLines: number | null) => void
   onCancel: () => void
   loading?: boolean
 }
 
-export function ProductionInput({ currentLines, stats, onSubmit, onCancel, loading }: ProductionInputProps) {
-  const [value, setValue] = useState('')
+export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCancel, loading }: ProductionInputProps) {
+  const min = currentLines ?? 0
+  const max = maxLines > 0 ? maxLines : 9999
+
+  const [value, setValue] = useState(min)
+  const [editing, setEditing] = useState(false)
+  const [editStr, setEditStr] = useState(String(min))
   const [remaining, setRemaining] = useState('')
 
-  const num = value ? parseInt(value) : null
   const remainingNum = remaining ? parseInt(remaining) : null
-
-  const delta = num !== null && currentLines !== null ? num - currentLines : null
+  const delta = value - min
 
   const diffLines = stats?.diffLinesTotal ?? null
-  const avanceRetard = num !== null && diffLines !== null
-    ? Math.round(num - (stats!.totalFinalLines! - diffLines))
+  const avanceRetard = diffLines !== null && stats?.totalFinalLines != null
+    ? Math.round(value - (stats.totalFinalLines - diffLines))
     : null
+
+  function clamp(n: number) {
+    return Math.max(min, Math.min(max, n))
+  }
+
+  function commitEdit() {
+    const n = parseInt(editStr)
+    if (!isNaN(n)) setValue(clamp(n))
+    setEditing(false)
+  }
 
   return (
     <div className="flex flex-col gap-5">
 
-      {/* Champ principal — Lignes préparées pad */}
-      <div className="flex flex-col gap-2">
+      {/* Contrôle principal */}
+      <div className="flex flex-col gap-3">
         <div>
           <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">
             Lignes préparées (pad)
@@ -43,19 +57,57 @@ export function ProductionInput({ currentLines, stats, onSubmit, onCancel, loadi
             </p>
           )}
         </div>
-        <input
-          type="number"
-          inputMode="numeric"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          placeholder="ex: 260"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-4 text-white text-center text-4xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
-          autoFocus
-        />
-        {delta !== null && (
-          <p className={`text-sm font-medium text-center ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {delta >= 0 ? '+' : ''}{delta} lignes depuis la dernière saisie
+
+        {/* +/- */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setValue(v => Math.max(min, v - 1))}
+            disabled={value <= min}
+            className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 active:bg-zinc-900 disabled:opacity-25 transition-colors flex-shrink-0"
+          >
+            −
+          </button>
+
+          {editing ? (
+            <input
+              type="number"
+              inputMode="numeric"
+              value={editStr}
+              onChange={e => setEditStr(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={e => e.key === 'Enter' && commitEdit()}
+              autoFocus
+              className="flex-1 bg-zinc-800 border-2 border-zinc-400 rounded-xl px-4 py-3 text-white text-center text-4xl font-bold focus:outline-none transition-all"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setEditStr(String(value)); setEditing(true) }}
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-center text-4xl font-bold hover:border-zinc-500 active:bg-zinc-900 transition-colors"
+            >
+              {value}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setValue(v => Math.min(max, v + 1))}
+            disabled={value >= max}
+            className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 text-3xl font-bold text-zinc-300 hover:bg-zinc-700 active:bg-zinc-900 disabled:opacity-25 transition-colors flex-shrink-0"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Feedback delta / objectif */}
+        {delta > 0 && (
+          <p className="text-sm font-medium text-center text-emerald-400">
+            +{delta} lignes depuis la dernière saisie
           </p>
+        )}
+        {delta === 0 && currentLines !== null && (
+          <p className="text-sm text-center text-zinc-600">Aucune ligne ajoutée</p>
         )}
         {avanceRetard !== null && (
           <p className={`text-sm font-medium text-center ${avanceRetard >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
@@ -66,24 +118,22 @@ export function ProductionInput({ currentLines, stats, onSubmit, onCancel, loadi
         )}
       </div>
 
-      {/* Séparateur */}
+      {/* Séparateur multi-prise */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-zinc-800" />
         <span className="text-[10px] text-zinc-600 uppercase tracking-wider">multi-prise</span>
         <div className="flex-1 h-px bg-zinc-800" />
       </div>
 
-      {/* Champ optionnel — Lignes restantes commande */}
+      {/* Lignes restantes optionnel */}
       <div className="flex flex-col gap-2">
-        <div>
-          <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1">
-            Lignes restantes sur la commande <span className="text-zinc-600 normal-case font-normal">(optionnel)</span>
-          </p>
-          <p className="text-xs text-zinc-600">
-            Pour les rôles multi-clients : entre le nombre de lignes encore à préparer.
-            Corrige le total réel de la mission.
-          </p>
-        </div>
+        <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">
+          Lignes restantes sur la commande{' '}
+          <span className="text-zinc-600 normal-case font-normal">(optionnel)</span>
+        </p>
+        <p className="text-xs text-zinc-600">
+          Multi-clients : corrige le total réel de la mission.
+        </p>
         <input
           type="number"
           inputMode="numeric"
@@ -92,27 +142,27 @@ export function ProductionInput({ currentLines, stats, onSubmit, onCancel, loadi
           placeholder="ex: 80"
           className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
         />
-        {num !== null && remainingNum !== null && currentLines !== null && (
+        {remainingNum !== null && delta > 0 && (
           <p className="text-xs text-zinc-500 text-center">
             Total mission recalculé :{' '}
-            <span className="text-zinc-300 font-semibold">
-              {(num - currentLines) + remainingNum} lignes
-            </span>
+            <span className="text-zinc-300 font-semibold">{delta + remainingNum} lignes</span>
           </p>
         )}
       </div>
 
-      {/* Boutons */}
+      {/* Actions */}
       <div className="grid grid-cols-2 gap-3">
         <button
+          type="button"
           onClick={onCancel}
           className="py-4 rounded-xl bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700 hover:bg-zinc-700 transition-colors"
         >
           Annuler
         </button>
         <button
-          onClick={() => num && num > 0 && onSubmit(num, remainingNum)}
-          disabled={!num || num <= 0 || loading}
+          type="button"
+          onClick={() => value > min && onSubmit(value, remainingNum)}
+          disabled={value <= min || loading}
           className="py-4 rounded-xl bg-blue-600 text-white font-semibold border border-blue-500/30 hover:bg-blue-500 disabled:opacity-40 transition-colors"
         >
           {loading ? '…' : 'Valider'}
