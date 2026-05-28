@@ -116,11 +116,16 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         </div>
       )}
 
-      {/* 3 métriques LPH */}
+      {/* Ligne 1 — Pad · Théorique · Lignes totales */}
       <div className="grid grid-cols-3 gap-2">
-        <StatCard label="Pad"       value={formatLph(pad)}         sublabel="l/h" color={lphColor(pad, targetLph)} />
-        <StatCard label="Théorique" value={formatLph(theoretical)} sublabel="l/h" color={lphColor(theoretical, targetLph)} />
-        <StatCard label="Réel"      value={formatLph(real)}        sublabel="l/h" color={lphColor(real, targetLph)} />
+        <StatCard label="Pad"           value={formatLph(pad)}         sublabel="l/h" color={lphColor(pad, targetLph)} />
+        <StatCard label="Théorique"     value={formatLph(theoretical)} sublabel="l/h" color={lphColor(theoretical, targetLph)} />
+        <StatCard
+          label="Lignes totales"
+          value={totalFinalLines !== null ? String(totalFinalLines) : '—'}
+          sublabel="finales jour"
+          color="gray"
+        />
       </div>
 
       {/* Ligne 2 — Avance/Retard · Écart · Lignes */}
@@ -144,8 +149,8 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
         />
       </div>
 
-      {/* Ligne 3 — Fin mission · Temps mort · Lignes totales */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Ligne 3 — Fin mission · Temps mort */}
+      <div className="grid grid-cols-2 gap-2">
         <StatCard
           label="Fin mission"
           value={formatTime(projectedEndTime)}
@@ -157,12 +162,6 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
           value={currentDeadTimeMs !== null ? formatDeadTime(currentDeadTimeMs) : '—'}
           sublabel={totalDeadTimeMs !== null ? `Total : ${formatDeadTime(totalDeadTimeMs)}` : undefined}
           color="amber"
-        />
-        <StatCard
-          label="Lignes totales"
-          value={totalFinalLines !== null ? String(totalFinalLines) : '—'}
-          sublabel="lignes finales jour"
-          color="gray"
         />
       </div>
     </div>
