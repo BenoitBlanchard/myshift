@@ -270,6 +270,33 @@ export default function SessionPage() {
     ? snapshots.reduce((a, b) => new Date(a.recorded_at) > new Date(b.recorded_at) ? a : b)
     : null
 
+  // Vrai restant sur la mission active : basé sur le dernier snapshot pris pendant cette mission
+  const activeMissionSnap = activeMission
+    ? snapshots
+        .filter(s =>
+          s.mission_id === activeMission.id &&
+          activeMission.started_at &&
+          new Date(s.recorded_at) >= new Date(activeMission.started_at)
+        )
+        .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())[0] ?? null
+    : null
+
+  let realRemainingLines: number | null = null
+  if (activeMission) {
+    if (activeMissionSnap?.remaining_command_lines != null) {
+      realRemainingLines = activeMissionSnap.remaining_command_lines
+    } else if (activeMissionSnap) {
+      const snapshotTime = new Date(activeMissionSnap.recorded_at)
+      const linesBeforeSnap = missions
+        .filter(m => m.id !== activeMission.id && m.ended_at && new Date(m.ended_at) <= snapshotTime)
+        .reduce((acc, m) => acc + m.total_pad_lines, 0)
+      const linesDone = Math.max(0, activeMissionSnap.total_final_lines - linesBeforeSnap)
+      realRemainingLines = Math.max(0, activeMission.total_pad_lines - linesDone)
+    } else {
+      realRemainingLines = activeMission.total_pad_lines
+    }
+  }
+
   return (
     <>
       <TopBar title="Session" />
@@ -313,10 +340,10 @@ export default function SessionPage() {
                   {elapsed(activeMission.started_at)}
                 </p>
               </div>
-              {stats?.projectedRemainingLines != null && (
+              {realRemainingLines !== null && (
                 <div className="text-right ml-3">
                   <p className="text-[10px] text-blue-300/40 uppercase tracking-wider">Restant</p>
-                  <p className="text-2xl font-bold text-blue-200 tabular-nums">~{stats.projectedRemainingLines}</p>
+                  <p className="text-2xl font-bold text-blue-200 tabular-nums">{realRemainingLines}</p>
                   <p className="text-[10px] text-blue-300/40">lignes</p>
                 </div>
               )}
