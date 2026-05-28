@@ -90,8 +90,10 @@ export function calcStats(
   pauses: Pause[],
   snapshots: ProductionSnapshot[],
   targetLph: number,
-  now: Date = new Date()
+  nowRaw: Date = new Date()
 ): ProductivityStats {
+  // Toutes les stats se figent à pad_disconnected_at — fin de journée productive
+  const now = session.pad_disconnected_at ? new Date(session.pad_disconnected_at) : nowRaw
   const latestSnapshot = snapshots.length
     ? snapshots.reduce((a, b) =>
         new Date(a.recorded_at) > new Date(b.recorded_at) ? a : b
@@ -194,9 +196,8 @@ export function calcStats(
   let cushionMs: number | null = null
   if (theoretical !== null && session.pad_connected_at) {
     const systemPausesMs = completedPausesMs(pauses, true)
-    const ref = session.pad_disconnected_at ?? now
     const effectiveHours = msToHours(
-      new Date(ref).getTime() - new Date(session.pad_connected_at).getTime() - systemPausesMs
+      now.getTime() - new Date(session.pad_connected_at).getTime() - systemPausesMs
     )
     // Valeur continue (non arrondie) pour un décompte fluide seconde par seconde
     const diffLinesContinuous = effectiveTotalLines - targetLph * effectiveHours
