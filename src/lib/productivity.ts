@@ -76,8 +76,9 @@ function calcDeadTimes(
     idleStart = m.ended_at!
   }
 
-  // Segment en cours : figé si mission active, ticking sinon
-  const segmentEnd = activeMission?.started_at ? new Date(activeMission.started_at) : now
+  // Segment en cours : figé si mission active, figé à pad_disconnected_at sinon
+  const ref = session.pad_disconnected_at ? new Date(session.pad_disconnected_at) : now
+  const segmentEnd = activeMission?.started_at ? new Date(activeMission.started_at) : ref
   const current = Math.max(0, msDiff(idleStart, segmentEnd))
 
   return { current, total: pastMs + current }
