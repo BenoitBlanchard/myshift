@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   LogIn, LogOut, Play, Square, Coffee, ChevronRight,
-  Zap, AlarmClock, Truck, MessageSquare
+  Zap, AlarmClock, Truck, MessageSquare, Calculator
 } from 'lucide-react'
 import { useSessionStore } from '@/store/session'
 import { useWakeLock } from '@/hooks/useWakeLock'
@@ -13,6 +13,7 @@ import { BigButton } from '@/components/ui/BigButton'
 import { Modal } from '@/components/ui/Modal'
 import { MissionForm } from '@/components/session/MissionForm'
 import { ProductionInput } from '@/components/session/ProductionInput'
+import { MissionCalculator } from '@/components/session/MissionCalculator'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
@@ -25,6 +26,7 @@ export default function SessionPage() {
   const [showProductionInput, setShowProductionInput] = useState(false)
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
+  const [calcModal, setCalcModal] = useState<{ missionId: string; currentNote: string | null } | null>(null)
   const [tick, setTick] = useState(0)
 
   const { session, missions, pauses, snapshots, profile, activeMission, activePause, stats } = store
@@ -258,6 +260,20 @@ export default function SessionPage() {
     setLoading(false)
   }
 
+  async function handleSaveCalc(newNote: string) {
+    if (!calcModal) return
+    setLoading(true)
+    const res = await fetch('/api/missions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: calcModal.missionId, notes: newNote }),
+    })
+    const updated = await res.json()
+    store.updateMission(calcModal.missionId, updated)
+    setCalcModal(null)
+    setLoading(false)
+  }
+
   // ── Dériver l'état courant ────────────────────────────────
   const hasPad = !!session?.pad_connected_at
   const padDone = !!session?.pad_disconnected_at
@@ -364,17 +380,27 @@ export default function SessionPage() {
                 loading={loading}
               />
             </div>
-            <button
-              type="button"
-              onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
-              className="w-full flex items-center gap-2.5 px-4 py-3.5 mt-2 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 text-sm transition-all"
-            >
-              <MessageSquare size={16} className="shrink-0" />
-              {activeMission.notes
-                ? <span className="truncate text-zinc-400">{activeMission.notes}</span>
-                : <span>Ajouter une note…</span>
-              }
-            </button>
+            <div className="flex items-stretch gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
+                className="flex-1 flex items-center gap-2.5 px-4 py-3.5 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 text-sm transition-all min-w-0"
+              >
+                <MessageSquare size={16} className="shrink-0" />
+                {activeMission.notes
+                  ? <span className="truncate text-zinc-400">{activeMission.notes}</span>
+                  : <span>Ajouter une note…</span>
+                }
+              </button>
+              <button
+                type="button"
+                onClick={() => setCalcModal({ missionId: activeMission.id, currentNote: activeMission.notes ?? null })}
+                className="px-4 py-3.5 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 transition-all shrink-0"
+                title="Calculette"
+              >
+                <Calculator size={16} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -509,14 +535,24 @@ export default function SessionPage() {
                     {m.notes && (
                       <p className="text-xs text-zinc-500 pl-1 leading-relaxed">{m.notes}</p>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
-                      className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors self-start"
-                    >
-                      <MessageSquare size={11} />
-                      {m.notes ? 'Modifier la note' : 'Ajouter une note'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
+                        className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors"
+                      >
+                        <MessageSquare size={11} />
+                        {m.notes ? 'Modifier la note' : 'Ajouter une note'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCalcModal({ missionId: m.id, currentNote: m.notes ?? null })}
+                        className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors"
+                        title="Calculette"
+                      >
+                        <Calculator size={11} />
+                      </button>
+                    </div>
                   </div>
                 )
               })}
@@ -564,6 +600,14 @@ export default function SessionPage() {
             loading={loading}
           />
         </Modal>
+      )}
+
+      {calcModal && (
+        <MissionCalculator
+          currentNote={calcModal.currentNote}
+          onSave={handleSaveCalc}
+          onClose={() => setCalcModal(null)}
+        />
       )}
 
       {noteModal && (
