@@ -29,6 +29,7 @@ export default function SessionPage() {
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
   const [calcModal, setCalcModal] = useState<{ missionId: string; currentNote: string | null } | null>(null)
   const [showAdjustModal, setShowAdjustModal] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<'endMission' | 'padDisconnect' | null>(null)
   const [tick, setTick] = useState(0)
 
   const { session, missions, pauses, snapshots, profile, activeMission, activePause, stats } = store
@@ -396,7 +397,7 @@ export default function SessionPage() {
                 label="Fin mission"
                 icon={Square}
                 variant="danger"
-                onClick={handleEndMission}
+                onClick={() => setConfirmAction('endMission')}
                 loading={loading}
               />
             </div>
@@ -482,7 +483,7 @@ export default function SessionPage() {
               label="Déco pad"
               icon={LogOut}
               variant="danger"
-              onClick={handlePadDisconnect}
+              onClick={() => setConfirmAction('padDisconnect')}
               loading={loading}
               className="w-full"
             />
@@ -628,6 +629,42 @@ export default function SessionPage() {
             onCancel={() => setShowProductionInput(false)}
             loading={loading}
           />
+        </Modal>
+      )}
+
+      {confirmAction && (
+        <Modal
+          title={confirmAction === 'endMission' ? 'Terminer la mission ?' : 'Déconnecter le pad ?'}
+          onClose={() => setConfirmAction(null)}
+        >
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-zinc-400">
+              {confirmAction === 'endMission'
+                ? 'La mission sera clôturée. Cette action est irréversible.'
+                : 'Le pad sera déconnecté. Les calculs de productivité s\'arrêteront.'}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                className="py-4 rounded-2xl bg-zinc-800/60 text-zinc-300 font-semibold border border-white/[0.08] hover:bg-zinc-700/70 active:scale-[0.97] transition-all"
+              >
+                Non
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  setConfirmAction(null)
+                  if (confirmAction === 'endMission') handleEndMission()
+                  else handlePadDisconnect()
+                }}
+                className="py-4 rounded-2xl bg-gradient-to-b from-red-500 to-red-700 text-white font-semibold border border-red-400/20 shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:from-red-400 hover:to-red-600 disabled:opacity-40 active:scale-[0.97] transition-all"
+              >
+                {loading ? '…' : 'Oui'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 
