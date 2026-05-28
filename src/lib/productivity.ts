@@ -101,17 +101,49 @@ export function calcStats(
   const hasSnapshot = !!latestSnapshot
   const snapshotLines = latestSnapshot?.total_final_lines ?? 0
 
-  // Missions terminées dont le DÉMARRAGE est postérieur au dernier snapshot.
-  // Filtrer sur started_at (pas ended_at) évite de double-compter les lignes déjà
-  // incluses dans le snapshot pour une mission qui était en cours au moment de l'injection.
-  const extraLines = missions
-    .filter(m =>
+  // Calcul des lignes hors snapshot
+  let extraLines = 0
+
+  if (!latestSnapshot) {
+    // Sans snapshot : somme de toutes les missions terminées
+    extraLines = missions
+      .filter(m => m.ended_at)
+      .reduce((acc, m) => acc + m.total_pad_lines, 0)
+  } else {
+    const snapshotTime = new Date(latestSnapshot.recorded_at)
+
+    // Lignes des missions terminées AVANT le snapshot → déjà incluses dans total_final_lines
+    const linesBeforeSnapshot = missions
+      .filter(m => m.ended_at && new Date(m.ended_at) <= snapshotTime)
+      .reduce((acc, m) => acc + m.total_pad_lines, 0)
+
+    // Mission active PENDANT le snapshot (démarrée avant, terminée après) :
+    // ajouter uniquement les lignes faites APRÈS le snapshot
+    const missionDuringSnapshot = missions.find(m =>
       m.ended_at &&
       m.started_at &&
-      (!latestSnapshot || new Date(m.started_at) > new Date(latestSnapshot.recorded_at))
+      new Date(m.started_at) <= snapshotTime &&
+      new Date(m.ended_at) > snapshotTime
     )
-    .reduce((acc, m) => acc + m.total_pad_lines, 0)
-  const effectiveTotalLines = snapshotLines + extraLines || null
+
+    if (missionDuringSnapshot) {
+      if (latestSnapshot.remaining_command_lines != null) {
+        // L'utilisateur a saisi manuellement les lignes restantes (régule)
+        extraLines += latestSnapshot.remaining_command_lines
+      } else {
+        // Calcul naturel : total mission − part déjà comptée dans le snapshot
+        const alreadyCounted = Math.max(0, snapshotLines - linesBeforeSnapshot)
+        extraLines += Math.max(0, missionDuringSnapshot.total_pad_lines - alreadyCounted)
+      }
+    }
+
+    // Missions démarrées entièrement APRÈS le snapshot → toutes leurs lignes
+    extraLines += missions
+      .filter(m => m.ended_at && m.started_at && new Date(m.started_at) > snapshotTime)
+      .reduce((acc, m) => acc + m.total_pad_lines, 0)
+  }
+
+  const effectiveTotalLines = (snapshotLines + extraLines) || null
 
   const activeMission = missions.find(m => m.started_at && !m.ended_at) ?? null
   const theoreticalForProjection = effectiveTotalLines

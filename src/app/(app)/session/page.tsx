@@ -166,7 +166,6 @@ export default function SessionPage() {
     if (!session || !activeMission) return
     setLoading(true)
 
-    // Créer le snapshot
     const snapRes = await fetch('/api/snapshots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -174,24 +173,11 @@ export default function SessionPage() {
         session_id: session.id,
         mission_id: activeMission.id,
         total_final_lines: totalLines,
+        ...(remainingLines !== null ? { remaining_command_lines: remainingLines } : {}),
       }),
     })
     const snapshot = await snapRes.json()
     store.addSnapshot(snapshot)
-
-    // Si lignes restantes fournies : recalculer le total_pad_lines de la mission
-    if (remainingLines !== null) {
-      const prevSnapshotLines = lastSnap?.total_final_lines ?? 0
-      const linesDoneSoFar = Math.max(0, totalLines - prevSnapshotLines)
-      const newMissionTotal = linesDoneSoFar + remainingLines
-      const missionRes = await fetch('/api/missions', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: activeMission.id, total_pad_lines: newMissionTotal }),
-      })
-      const updatedMission = await missionRes.json()
-      store.updateMission(activeMission.id, updatedMission)
-    }
 
     setShowProductionInput(false)
     setLoading(false)
@@ -449,35 +435,64 @@ export default function SessionPage() {
               Missions ({missions.length})
             </p>
             <div className="flex flex-col gap-3">
-              {missions.map(m => (
-                <div key={m.id} className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">
-                      #{m.mission_number} · {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
-                    </span>
-                    <div className="flex items-center gap-3 text-right">
-                      <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>
-                      <span className="text-zinc-500">{m.total_weight_kg}kg</span>
-                      {m.ended_at ? (
-                        <span className="text-emerald-400 text-xs">✓</span>
-                      ) : (
-                        <span className="text-blue-400 text-xs animate-pulse">⏱</span>
-                      )}
+              {missions.map(m => {
+                // Cherche un snapshot pris PENDANT cette mission avec remaining_command_lines
+                const mSnap = snapshots
+                  .filter(s =>
+                    s.mission_id === m.id &&
+                    s.remaining_command_lines != null &&
+                    m.started_at && m.ended_at &&
+                    new Date(s.recorded_at) >= new Date(m.started_at) &&
+                    new Date(s.recorded_at) <= new Date(m.ended_at)
+                  )
+                  .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())[0]
+
+                let reguleDiff: number | null = null
+                if (mSnap && mSnap.remaining_command_lines != null) {
+                  const snapshotTime = new Date(mSnap.recorded_at)
+                  const linesBeforeSnap = missions
+                    .filter(m2 => m2.id !== m.id && m2.ended_at && new Date(m2.ended_at) <= snapshotTime)
+                    .reduce((acc, m2) => acc + m2.total_pad_lines, 0)
+                  const alreadyCounted = Math.max(0, mSnap.total_final_lines - linesBeforeSnap)
+                  const effectiveTotal = alreadyCounted + mSnap.remaining_command_lines
+                  reguleDiff = effectiveTotal - m.total_pad_lines
+                }
+
+                return (
+                  <div key={m.id} className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-400">
+                        #{m.mission_number} · {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
+                      </span>
+                      <div className="flex items-center gap-3 text-right">
+                        <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>
+                        <span className="text-zinc-500">{m.total_weight_kg}kg</span>
+                        {m.ended_at ? (
+                          <span className="text-emerald-400 text-xs">✓</span>
+                        ) : (
+                          <span className="text-blue-400 text-xs animate-pulse">⏱</span>
+                        )}
+                      </div>
                     </div>
+                    {reguleDiff !== null && (
+                      <p className={`text-xs pl-1 font-semibold ${reguleDiff < 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                        régule {reguleDiff > 0 ? '+' : ''}{reguleDiff} lig.
+                      </p>
+                    )}
+                    {m.notes && (
+                      <p className="text-xs text-zinc-500 pl-1 leading-relaxed">{m.notes}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
+                      className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors self-start"
+                    >
+                      <MessageSquare size={11} />
+                      {m.notes ? 'Modifier la note' : 'Ajouter une note'}
+                    </button>
                   </div>
-                  {m.notes && (
-                    <p className="text-xs text-zinc-500 pl-1 leading-relaxed">{m.notes}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
-                    className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors self-start"
-                  >
-                    <MessageSquare size={11} />
-                    {m.notes ? 'Modifier la note' : 'Ajouter une note'}
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between text-sm">
               <span className="text-zinc-500">Total pad</span>

@@ -78,6 +78,7 @@ export interface ProductionSnapshot {
   user_id: string
   recorded_at: string
   total_final_lines: number
+  remaining_command_lines: number | null
   created_at: string
 }
 
