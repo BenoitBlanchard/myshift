@@ -171,6 +171,7 @@ export function calcStats(
       targetLph,
       diffLph: null,
       diffLinesTotal: null,
+      cushionMs: null,
       projectedEndTime,
       projectedRemainingLines,
       cushionLph: null,
@@ -189,13 +190,17 @@ export function calcStats(
   const cushionLph = diffLph
 
   let diffLinesTotal: number | null = null
+  let cushionMs: number | null = null
   if (theoretical !== null && session.pad_connected_at) {
     const allPausesMs = completedPausesMs(pauses, false)
     const ref = session.pad_disconnected_at ?? now
     const effectiveHours = msToHours(
       new Date(ref).getTime() - new Date(session.pad_connected_at).getTime() - allPausesMs
     )
-    diffLinesTotal = Math.round(effectiveTotalLines - targetLph * effectiveHours)
+    // Valeur continue (non arrondie) pour un décompte fluide seconde par seconde
+    const diffLinesContinuous = effectiveTotalLines - targetLph * effectiveHours
+    diffLinesTotal = Math.round(diffLinesContinuous)
+    cushionMs = Math.abs(diffLinesContinuous / targetLph) * 3_600_000
   }
 
   return {
@@ -205,6 +210,7 @@ export function calcStats(
     targetLph,
     diffLph,
     diffLinesTotal,
+    cushionMs,
     projectedEndTime,
     projectedRemainingLines,
     cushionLph,

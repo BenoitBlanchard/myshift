@@ -89,6 +89,7 @@ export interface ProductivityStats {
   targetLph: number
   diffLph: number | null
   diffLinesTotal: number | null
+  cushionMs: number | null
   projectedEndTime: Date | null
   projectedRemainingLines: number | null
   cushionLph: number | null

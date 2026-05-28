@@ -60,7 +60,7 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
 
   const {
     pad, theoretical, real, targetLph,
-    diffLph, diffLinesTotal,
+    diffLph, diffLinesTotal, cushionMs,
     projectedEndTime, projectedRemainingLines,
     totalFinalLines,
     currentDeadTimeMs, totalDeadTimeMs,
@@ -68,11 +68,8 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
 
   const missionActive = projectedRemainingLines !== null
 
-  // Avance/retard exprimé en temps
+  // cushionMs vient de calcStats (valeur continue = décompte fluide seconde par seconde)
   const cushionPositive = (diffLinesTotal ?? 0) >= 0
-  const cushionMs = diffLinesTotal !== null
-    ? Math.abs(diffLinesTotal / targetLph) * 3600 * 1000
-    : null
 
   if (!totalFinalLines) {
     return (
