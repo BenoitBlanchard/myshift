@@ -13,10 +13,10 @@ interface ProductionInputProps {
 }
 
 export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCancel, loading }: ProductionInputProps) {
-  const min = 0
+  const min = currentLines ?? 0
   const max = maxLines > 0 ? maxLines : 9999
 
-  const [value, setValue] = useState(currentLines ?? 0)
+  const [value, setValue] = useState(min)
   const [editing, setEditing] = useState(false)
   const [editStr, setEditStr] = useState(String(min))
   const [remaining, setRemaining] = useState('')
@@ -106,12 +106,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
             +{delta} lignes depuis la dernière saisie
           </p>
         )}
-        {delta < 0 && (
-          <p className="text-sm font-medium text-center text-amber-400">
-            Correction : {delta} lignes
-          </p>
-        )}
-        {delta === 0 && currentLines !== null && (
+{delta === 0 && currentLines !== null && (
           <p className="text-sm text-center text-zinc-600">Aucune ligne ajoutée</p>
         )}
         {avanceRetard !== null && (
@@ -167,7 +162,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
         <button
           type="button"
           onClick={() => onSubmit(value, remainingNum)}
-          disabled={loading}
+          disabled={value <= min || loading}
           className="py-4 rounded-2xl bg-gradient-to-b from-blue-500 to-blue-700 text-white font-semibold border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-40 active:scale-[0.97] transition-all"
         >
           {loading ? '…' : 'Valider'}
