@@ -15,22 +15,21 @@ function completedPausesMs(pauses: Pause[], systemOnly: boolean): number {
     .reduce((acc, p) => acc + msDiff(p.started_at, p.ended_at!), 0)
 }
 
-// Pad = temps total − pauses décomptées système
+// Pad = temps brut depuis connexion pad, aucune pause déduite (correspond à l'affichage Magellan)
 function calcPadLph(
   session: WorkSession,
-  pauses: Pause[],
+  _pauses: Pause[],
   lines: number,
   now: Date
 ): number | null {
   if (!session.pad_connected_at || lines === 0) return null
   const ref = session.pad_disconnected_at ?? now
-  const totalMs = msDiff(session.pad_connected_at, ref)
-  const effectiveHours = msToHours(totalMs - completedPausesMs(pauses, true))
+  const effectiveHours = msToHours(msDiff(session.pad_connected_at, ref))
   if (effectiveHours <= 0) return null
   return lines / effectiveHours
 }
 
-// Théorique = temps total − toutes les pauses
+// Théorique = temps total − pause(s) décomptées système uniquement (base calcul prime)
 function calcTheoreticalLph(
   session: WorkSession,
   pauses: Pause[],
@@ -40,7 +39,7 @@ function calcTheoreticalLph(
   if (!session.pad_connected_at || lines === 0) return null
   const ref = session.pad_disconnected_at ?? now
   const totalMs = msDiff(session.pad_connected_at, ref)
-  const effectiveHours = msToHours(totalMs - completedPausesMs(pauses, false))
+  const effectiveHours = msToHours(totalMs - completedPausesMs(pauses, true))
   if (effectiveHours <= 0) return null
   return lines / effectiveHours
 }
@@ -193,10 +192,10 @@ export function calcStats(
   let diffLinesTotal: number | null = null
   let cushionMs: number | null = null
   if (theoretical !== null && session.pad_connected_at) {
-    const allPausesMs = completedPausesMs(pauses, false)
+    const systemPausesMs = completedPausesMs(pauses, true)
     const ref = session.pad_disconnected_at ?? now
     const effectiveHours = msToHours(
-      new Date(ref).getTime() - new Date(session.pad_connected_at).getTime() - allPausesMs
+      new Date(ref).getTime() - new Date(session.pad_connected_at).getTime() - systemPausesMs
     )
     // Valeur continue (non arrondie) pour un décompte fluide seconde par seconde
     const diffLinesContinuous = effectiveTotalLines - targetLph * effectiveHours
