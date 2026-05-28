@@ -116,7 +116,7 @@ export function StatsGrid({ stats, isLive }: StatsGridProps) {
       {/* Ligne 1 — Pad · Théorique · Lignes totales */}
       <div className="grid grid-cols-3 gap-2">
         <StatCard label="Pad"           value={formatLph(pad)}         sublabel="l/h" color={lphColor(pad, targetLph)} />
-        <StatCard label="Théorique"     value={formatLph(theoretical)} sublabel="l/h" color={lphColor(theoretical, targetLph)} />
+        <StatCard label="Réel"     value={formatLph(theoretical)} sublabel="l/h" color={lphColor(theoretical, targetLph)} />
         <StatCard
           label="Lignes totales"
           value={totalFinalLines !== null ? String(totalFinalLines) : '—'}
