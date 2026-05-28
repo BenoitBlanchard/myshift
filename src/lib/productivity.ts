@@ -143,7 +143,8 @@ export function calcStats(
       .reduce((acc, m) => acc + m.total_pad_lines, 0)
   }
 
-  const effectiveTotalLines = (snapshotLines + extraLines) || null
+  const adjustment = session.lines_adjustment ?? 0
+  const effectiveTotalLines = (snapshotLines + extraLines + adjustment) || null
 
   const activeMission = missions.find(m => m.started_at && !m.ended_at) ?? null
   const theoreticalForProjection = effectiveTotalLines

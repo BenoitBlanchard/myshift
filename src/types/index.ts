@@ -29,6 +29,7 @@ export interface WorkSession {
   pad_disconnected_at: string | null
   left_at: string | null
   notes: string | null
+  lines_adjustment: number | null
   created_at: string
 }
 

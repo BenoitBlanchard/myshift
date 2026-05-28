@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal'
 import { MissionForm } from '@/components/session/MissionForm'
 import { ProductionInput } from '@/components/session/ProductionInput'
 import { MissionCalculator } from '@/components/session/MissionCalculator'
+import { AdjustTotalModal } from '@/components/session/AdjustTotalModal'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
@@ -27,6 +28,7 @@ export default function SessionPage() {
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
   const [calcModal, setCalcModal] = useState<{ missionId: string; currentNote: string | null } | null>(null)
+  const [showAdjustModal, setShowAdjustModal] = useState(false)
   const [tick, setTick] = useState(0)
 
   const { session, missions, pauses, snapshots, profile, activeMission, activePause, stats } = store
@@ -257,6 +259,24 @@ export default function SessionPage() {
     const updated = await res.json()
     store.updateMission(noteModal.missionId, updated)
     setNoteModal(null)
+    setLoading(false)
+  }
+
+  async function handleSaveAdjust(newTotal: number) {
+    if (!session) return
+    const currentAdjustment = session.lines_adjustment ?? 0
+    const currentTotal = stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0
+    const baseTotal = (currentTotal as number) - currentAdjustment
+    const newAdjustment = newTotal - baseTotal
+    setLoading(true)
+    const res = await fetch('/api/sessions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: session.id, lines_adjustment: newAdjustment === 0 ? null : newAdjustment }),
+    })
+    const updated = await res.json()
+    store.updateSession(updated)
+    setShowAdjustModal(false)
     setLoading(false)
   }
 
@@ -557,6 +577,11 @@ export default function SessionPage() {
                 )
               })}
             </div>
+            {session?.lines_adjustment != null && session.lines_adjustment !== 0 && (
+              <p className={`text-xs font-semibold pl-1 mt-2 ${session.lines_adjustment < 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                régule {session.lines_adjustment > 0 ? '+' : ''}{session.lines_adjustment} lig.
+              </p>
+            )}
             <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between text-sm">
               <span className="text-zinc-500">Total pad</span>
               <span className="text-white font-semibold tabular-nums">
@@ -565,12 +590,16 @@ export default function SessionPage() {
               </span>
             </div>
             {(stats?.totalFinalLines != null || lastSnap) && (
-              <div className="mt-1 flex justify-between text-sm">
-                <span className="text-zinc-500">Lignes finales (pad)</span>
-                <span className="text-blue-400 font-semibold tabular-nums">
+              <button
+                type="button"
+                onClick={() => setShowAdjustModal(true)}
+                className="mt-1 w-full flex justify-between items-center text-sm hover:bg-zinc-800/40 rounded-xl px-1 py-0.5 -mx-1 transition-colors group"
+              >
+                <span className="text-zinc-500 group-hover:text-zinc-400 transition-colors">Lignes finales (pad)</span>
+                <span className="text-blue-400 font-semibold tabular-nums underline decoration-dotted underline-offset-2">
                   {stats?.totalFinalLines ?? lastSnap?.total_final_lines}
                 </span>
-              </div>
+              </button>
             )}
           </div>
         )}
@@ -601,6 +630,19 @@ export default function SessionPage() {
           />
         </Modal>
       )}
+
+      {showAdjustModal && (() => {
+        const currentTotal = stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0
+        return (
+          <AdjustTotalModal
+            currentTotal={currentTotal as number}
+            currentAdjustment={session?.lines_adjustment ?? 0}
+            onSave={handleSaveAdjust}
+            onClose={() => setShowAdjustModal(false)}
+            loading={loading}
+          />
+        )
+      })()}
 
       {calcModal && (
         <MissionCalculator
