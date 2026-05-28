@@ -13,7 +13,7 @@ interface ProductionInputProps {
 }
 
 export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCancel, loading }: ProductionInputProps) {
-  const min = currentLines ?? 0
+  const min = 0
   const max = maxLines > 0 ? maxLines : 9999
 
   const [value, setValue] = useState(min)
@@ -53,7 +53,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
           </p>
           {currentLines !== null && (
             <p className="text-xs text-zinc-600 mt-0.5">
-              Dernier total connu : <span className="text-zinc-400 font-semibold">{currentLines}</span>
+              Total préparées connu : <span className="text-zinc-400 font-semibold">{currentLines}</span>
             </p>
           )}
         </div>
@@ -104,6 +104,11 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
         {delta > 0 && (
           <p className="text-sm font-medium text-center text-emerald-400">
             +{delta} lignes depuis la dernière saisie
+          </p>
+        )}
+        {delta < 0 && (
+          <p className="text-sm font-medium text-center text-amber-400">
+            Correction : {delta} lignes
           </p>
         )}
         {delta === 0 && currentLines !== null && (
@@ -161,8 +166,8 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
         </button>
         <button
           type="button"
-          onClick={() => value > min && onSubmit(value, remainingNum)}
-          disabled={value <= min || loading}
+          onClick={() => onSubmit(value, remainingNum)}
+          disabled={loading}
           className="py-4 rounded-2xl bg-gradient-to-b from-blue-500 to-blue-700 text-white font-semibold border border-blue-400/20 shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:from-blue-400 hover:to-blue-600 disabled:opacity-40 active:scale-[0.97] transition-all"
         >
           {loading ? '…' : 'Valider'}
