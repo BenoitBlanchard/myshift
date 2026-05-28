@@ -16,7 +16,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
   const min = 0
   const max = maxLines > 0 ? maxLines : 9999
 
-  const [value, setValue] = useState(min)
+  const [value, setValue] = useState(currentLines ?? 0)
   const [editing, setEditing] = useState(false)
   const [editStr, setEditStr] = useState(String(min))
   const [remaining, setRemaining] = useState('')
