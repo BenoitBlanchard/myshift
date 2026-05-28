@@ -132,7 +132,7 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
           <span className="text-zinc-600 normal-case font-normal">(optionnel)</span>
         </p>
         <p className="text-xs text-zinc-600">
-          Multi-clients : corrige le total réel de la mission.
+          Affiche une régule dans le récap — ne modifie pas la mission.
         </p>
         <input
           type="number"
@@ -142,10 +142,9 @@ export function ProductionInput({ currentLines, maxLines, stats, onSubmit, onCan
           placeholder="ex: 80"
           className="w-full bg-zinc-800/60 border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-center text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
         />
-        {remainingNum !== null && delta > 0 && (
+        {remainingNum !== null && (
           <p className="text-xs text-zinc-500 text-center">
-            Total mission recalculé :{' '}
-            <span className="text-zinc-300 font-semibold">{delta + remainingNum} lignes</span>
+            Régule visible dans le récap de la mission
           </p>
         )}
       </div>
