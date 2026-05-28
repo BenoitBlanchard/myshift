@@ -556,7 +556,7 @@ export default function SessionPage() {
       {showProductionInput && (
         <Modal title="Injection Production" onClose={() => setShowProductionInput(false)}>
           <ProductionInput
-            currentLines={lastSnap?.total_final_lines ?? null}
+            currentLines={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? null}
             maxLines={missions.reduce((a, m) => a + m.total_pad_lines, 0)}
             stats={stats}
             onSubmit={handleProduction}
