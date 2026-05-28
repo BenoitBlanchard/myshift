@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { TopBar } from '@/components/layout/TopBar'
 import { formatDate, formatTimestamp } from '@/lib/utils'
-import { calcStats, formatLph } from '@/lib/productivity'
+import { calcStats, formatDuration, formatLph } from '@/lib/productivity'
 
 export default async function SessionDetailPage({
   params,
@@ -37,6 +37,13 @@ export default async function SessionDetailPage({
   const endTime = session.pad_disconnected_at ?? session.left_at ?? new Date().toISOString()
   const stats = calcStats(session, missions, pauses, snapshots, targetLph, new Date(endTime))
 
+  const workDurationMs = session.arrived_at && session.left_at
+    ? new Date(session.left_at).getTime() - new Date(session.arrived_at).getTime()
+    : null
+  const prodDurationMs = session.pad_connected_at && session.pad_disconnected_at
+    ? new Date(session.pad_disconnected_at).getTime() - new Date(session.pad_connected_at).getTime()
+    : null
+
   return (
     <>
       <TopBar title={formatDate(session.date)} />
@@ -56,6 +63,27 @@ export default async function SessionDetailPage({
             </div>
           ))}
         </div>
+
+        {/* Journée */}
+        {(workDurationMs !== null || prodDurationMs !== null) && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Journée</p>
+            <div className="flex flex-col gap-2 text-sm">
+              {workDurationMs !== null && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Temps total travaillé</span>
+                  <span className="text-white font-semibold tabular-nums">{formatDuration(workDurationMs)}</span>
+                </div>
+              )}
+              {prodDurationMs !== null && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Temps de production (pad)</span>
+                  <span className="text-white font-semibold tabular-nums">{formatDuration(prodDurationMs)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Timeline */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
