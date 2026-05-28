@@ -4,7 +4,12 @@
       "Bash(git commit -m ' *)",
       "Bash(xargs ls -la)",
       "Bash(xargs cat -n)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(git commit -m 'fix: initialiser le stepper à currentLines et non à 0 *)",
+      "Bash(git commit -m 'fix: rétablir min=currentLines — on ne peut pas descendre sous le total enregistré *)",
+      "Bash(git commit -m 'fix: Production modal démarre au total effectif \\(stats.totalFinalLines\\) pas au dernier snapshot brut *)",
+      "Bash(git commit -m 'fix: supprimer '\\\\''Total mission recalculé'\\\\'' — les lignes restantes créent une régule uniquement *)",
+      "Bash(git commit -m 'docs: mise à jour CLAUDE.md — règles métier, effectiveTotalLines, régule, UI *)"
     ]
   }
 }
