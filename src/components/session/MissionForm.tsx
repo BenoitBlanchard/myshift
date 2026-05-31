@@ -15,62 +15,6 @@ interface MissionFormProps {
 
 const CITIES = ['Villeneuve', 'Rochefort', 'Mouguerre', 'Bordeaux'] as const
 
-function QuaiSelector({
-  type,
-  value,
-  onChange,
-}: {
-  type: SupportType
-  value: string
-  onChange: (v: string) => void
-}) {
-  const isCity = (CITIES as readonly string[]).includes(value)
-  const numValue = !isCity ? value : ''
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Quai</span>
-      <div className="grid grid-cols-2 gap-1.5">
-        {CITIES.map(city => (
-          <button
-            key={city}
-            type="button"
-            onClick={() => onChange(value === city ? '' : city)}
-            className={cn(
-              'py-2 rounded-xl text-xs font-semibold border transition-all active:scale-[0.96]',
-              value === city
-                ? 'bg-gradient-to-b from-blue-500 to-blue-700 text-white border-blue-400/20 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
-                : 'bg-zinc-900 text-zinc-400 border-white/[0.06] hover:bg-zinc-800'
-            )}
-          >
-            {city}
-          </button>
-        ))}
-      </div>
-      {type === 'role' && (
-        <input
-          type="number"
-          inputMode="numeric"
-          min="0"
-          max="75"
-          placeholder="N° quai (0 – 75)"
-          value={numValue}
-          onChange={e => {
-            const v = e.target.value
-            if (v === '') { onChange(''); return }
-            const n = parseInt(v)
-            if (!isNaN(n) && n >= 0 && n <= 75) onChange(String(n))
-          }}
-          className={cn(
-            'w-full bg-zinc-900 border rounded-xl px-3 py-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-all',
-            !isCity && numValue ? 'border-blue-500/50' : 'border-white/[0.08]'
-          )}
-        />
-      )}
-    </div>
-  )
-}
-
 function SupportRow({
   type,
   label,
@@ -110,7 +54,26 @@ function SupportRow({
           />
         </label>
       </div>
-      <QuaiSelector type={type} value={quai} onChange={v => onChange({ quai: v })} />
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Quai</span>
+        <select
+          value={quai}
+          onChange={e => onChange({ quai: e.target.value || undefined })}
+          className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all appearance-none"
+        >
+          <option value="">—</option>
+          <optgroup label="Villes">
+            {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </optgroup>
+          {type === 'role' && (
+            <optgroup label="Quai n°">
+              {Array.from({ length: 76 }, (_, i) => (
+                <option key={i} value={String(i)}>{i}</option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      </label>
     </div>
   )
 }
