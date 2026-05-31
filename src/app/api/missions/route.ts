@@ -80,13 +80,14 @@ export async function POST(request: NextRequest) {
 
   if (supports?.length) {
     await supabase.from('mission_supports').insert(
-      supports.map((s: { label: string; pad_lines: number; weight_kg: number; liters?: number }, i: number) => ({
+      supports.map((s: { label: string; pad_lines: number; weight_kg: number; liters?: number; quai?: string }, i: number) => ({
         mission_id: mission.id,
         support_index: i + 1,
         label: s.label,
         pad_lines: s.pad_lines || 0,
         weight_kg: s.weight_kg || 0,
         liters: s.liters ?? null,
+        quai: s.quai ?? null,
       }))
     )
   }

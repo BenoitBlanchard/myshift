@@ -119,11 +119,11 @@ export default function HistoryPage() {
             {/* Comparatif rôles vs palettes */}
             {(rolesCount > 0 || palettesCount > 0) && (
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Rôles vs Palettes</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Rolls vs Palettes</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-blue-950/30 border border-blue-800/40 rounded-xl p-3 text-center">
                     <p className="text-2xl font-bold text-blue-300 tabular-nums">{rolesCount}</p>
-                    <p className="text-xs text-blue-400">missions rôles</p>
+                    <p className="text-xs text-blue-400">missions rolls</p>
                     {avgLphRoles !== null && (
                       <p className="text-sm font-semibold text-white mt-1 tabular-nums">{formatLph(avgLphRoles)} l/h moy.</p>
                     )}

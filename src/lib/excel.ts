@@ -82,7 +82,7 @@ export function buildExcel({ sessions, month, year }: ExportData): Uint8Array {
       missionRows.push([
         s.date,
         m.mission_number,
-        m.support_type === 'role' ? 'Rôle' : 'Palette',
+        m.support_type === 'role' ? 'Roll' : 'Palette',
         m.support_count,
         m.total_pad_lines,
         m.total_weight_kg,
@@ -129,9 +129,9 @@ export function buildExcel({ sessions, month, year }: ExportData): Uint8Array {
     ['Moyenne lignes/h théorique', Math.round(avgLph * 10) / 10],
     ['Total poids (kg)', Math.round(totalWeight)],
     [],
-    ['Missions rôles', rolesCount],
+    ['Missions rolls', rolesCount],
     ['Missions palettes', palettesCount],
-    ['% rôles', rolesCount + palettesCount > 0 ? `${Math.round(rolesCount / (rolesCount + palettesCount) * 100)}%` : '—'],
+    ['% rolls', rolesCount + palettesCount > 0 ? `${Math.round(rolesCount / (rolesCount + palettesCount) * 100)}%` : '—'],
   ]
 
   const wsStats = XLSX.utils.aoa_to_sheet(statsRows)

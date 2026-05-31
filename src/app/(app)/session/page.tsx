@@ -370,7 +370,7 @@ export default function SessionPage() {
                   Mission #{activeMission.mission_number}
                 </p>
                 <p className="text-blue-300/60 text-sm">
-                  {activeMission.support_type === 'role' ? 'Rôle' : 'Palette'} ×{activeMission.support_count}{' '}
+                  {activeMission.support_type === 'role' ? 'Roll' : 'Palette'} ×{activeMission.support_count}{' '}
                   · {activeMission.total_pad_lines} lignes pad
                 </p>
                 <p className="text-blue-300/40 text-xs font-mono mt-0.5">
@@ -536,7 +536,7 @@ export default function SessionPage() {
                   <div key={m.id} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-zinc-400">
-                        #{m.mission_number} · {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
+                        #{m.mission_number} · {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
                       </span>
                       <div className="flex items-center gap-3 text-right">
                         <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>

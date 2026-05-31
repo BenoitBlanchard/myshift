@@ -13,32 +13,79 @@ interface MissionFormProps {
   loading?: boolean
 }
 
-function SupportRow({
-  index,
+const CITIES = ['Villeneuve', 'Rochefort', 'Mouguerre', 'Bordeaux'] as const
+
+function QuaiSelector({
   type,
-  label,
+  value,
   onChange,
 }: {
-  index: number
+  type: SupportType
+  value: string
+  onChange: (v: string) => void
+}) {
+  const isCity = (CITIES as readonly string[]).includes(value)
+  const numValue = !isCity ? value : ''
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Quai</span>
+      <div className="grid grid-cols-2 gap-1.5">
+        {CITIES.map(city => (
+          <button
+            key={city}
+            type="button"
+            onClick={() => onChange(value === city ? '' : city)}
+            className={cn(
+              'py-2 rounded-xl text-xs font-semibold border transition-all active:scale-[0.96]',
+              value === city
+                ? 'bg-gradient-to-b from-blue-500 to-blue-700 text-white border-blue-400/20 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                : 'bg-zinc-900 text-zinc-400 border-white/[0.06] hover:bg-zinc-800'
+            )}
+          >
+            {city}
+          </button>
+        ))}
+      </div>
+      {type === 'role' && (
+        <input
+          type="number"
+          inputMode="numeric"
+          min="0"
+          max="75"
+          placeholder="N° quai (0 – 75)"
+          value={numValue}
+          onChange={e => {
+            const v = e.target.value
+            if (v === '') { onChange(''); return }
+            const n = parseInt(v)
+            if (!isNaN(n) && n >= 0 && n <= 75) onChange(String(n))
+          }}
+          className={cn(
+            'w-full bg-zinc-900 border rounded-xl px-3 py-2 text-white text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-all',
+            !isCity && numValue ? 'border-blue-500/50' : 'border-white/[0.08]'
+          )}
+        />
+      )}
+    </div>
+  )
+}
+
+function SupportRow({
+  type,
+  label,
+  quai,
+  onChange,
+}: {
   type: SupportType
   label: string
-  onChange: (field: string, val: number | undefined) => void
+  quai: string
+  onChange: (updates: { pad_lines?: number; weight_kg?: number; quai?: string }) => void
 }) {
   return (
-    <div className="bg-zinc-800/40 rounded-2xl p-3 flex flex-col gap-2 border border-white/[0.07]">
+    <div className="bg-zinc-800/40 rounded-2xl p-3 flex flex-col gap-2.5 border border-white/[0.07]">
       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{label}</span>
       <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Lignes pad</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            min="0"
-            placeholder="0"
-            className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
-            onChange={e => onChange('pad_lines', e.target.value ? parseInt(e.target.value) : 0)}
-          />
-        </label>
         <label className="flex flex-col gap-1.5">
           <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Poids (kg)</span>
           <input
@@ -48,10 +95,22 @@ function SupportRow({
             step="0.1"
             placeholder="0"
             className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
-            onChange={e => onChange('weight_kg', e.target.value ? parseFloat(e.target.value) : 0)}
+            onChange={e => onChange({ weight_kg: e.target.value ? parseFloat(e.target.value) : 0 })}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Lignes pad</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            placeholder="0"
+            className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all"
+            onChange={e => onChange({ pad_lines: e.target.value ? parseInt(e.target.value) : 0 })}
           />
         </label>
       </div>
+      <QuaiSelector type={type} value={quai} onChange={v => onChange({ quai: v })} />
     </div>
   )
 }
@@ -62,18 +121,19 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
   const [supports, setSupports] = useState<Array<{
     pad_lines: number
     weight_kg: number
-  }>>(Array.from({ length: 3 }, () => ({ pad_lines: 0, weight_kg: 0 })))
+    quai: string
+  }>>(Array.from({ length: 3 }, () => ({ pad_lines: 0, weight_kg: 0, quai: '' })))
 
-  function updateSupport(idx: number, field: string, val: number | undefined) {
+  function updateSupport(idx: number, updates: { pad_lines?: number; weight_kg?: number; quai?: string }) {
     setSupports(prev => {
       const next = [...prev]
-      next[idx] = { ...next[idx], [field]: val }
+      next[idx] = { ...next[idx], ...updates }
       return next
     })
   }
 
   function getSupportLabel(i: number): string {
-    if (type === 'role') return `Rôle ${['A', 'B', 'C'][i]}`
+    if (type === 'role') return `Roll ${['A', 'B', 'C'][i]}`
     return `Palette ${i + 1}`
   }
 
@@ -86,6 +146,7 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
         label: getSupportLabel(i),
         pad_lines: s.pad_lines,
         weight_kg: s.weight_kg,
+        ...(s.quai ? { quai: s.quai } : {}),
       })),
     })
   }
@@ -120,7 +181,7 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
                   : 'bg-zinc-800/60 text-zinc-400 border-white/[0.06] hover:bg-zinc-700/70'
               )}
             >
-              {t === 'role' ? 'Rôle' : 'Palette'}
+              {t === 'role' ? 'Roll' : 'Palette'}
             </button>
           ))}
         </div>
@@ -152,10 +213,10 @@ export function MissionForm({ missionNumber, deadTimeMs, onSubmit, onCancel, loa
         {Array.from({ length: count }).map((_, i) => (
           <SupportRow
             key={i}
-            index={i}
             type={type}
             label={getSupportLabel(i)}
-            onChange={(field, val) => updateSupport(i, field, val)}
+            quai={supports[i].quai}
+            onChange={updates => updateSupport(i, updates)}
           />
         ))}
       </div>

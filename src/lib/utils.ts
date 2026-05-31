@@ -30,6 +30,7 @@ export function formatTimestamp(ts: string | null): string {
   return new Date(ts).toLocaleTimeString('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Europe/Paris',
   })
 }
 

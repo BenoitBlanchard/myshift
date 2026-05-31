@@ -41,6 +41,7 @@ export interface MissionSupport {
   pad_lines: number
   weight_kg: number
   liters: number | null
+  quai: string | null
   created_at: string
 }
 
@@ -108,6 +109,7 @@ export interface MissionFormData {
     pad_lines: number
     weight_kg: number
     liters?: number
+    quai?: string
   }>
 }
 

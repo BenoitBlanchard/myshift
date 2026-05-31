@@ -114,7 +114,7 @@ export default async function SessionDetailPage({
                 <div key={m.id} className="border-b border-gray-800 last:border-0 pb-3 last:pb-0">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-white">
-                      Mission #{m.mission_number} — {m.support_type === 'role' ? 'Rôle' : 'Palette'} ×{m.support_count}
+                      Mission #{m.mission_number} — {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
                     </span>
                     <span className="text-gray-400 text-sm">{m.total_pad_lines} lig.</span>
                   </div>
