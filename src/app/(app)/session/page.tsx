@@ -530,6 +530,32 @@ export default function SessionPage() {
           <StatsGrid stats={stats} isLive />
         )}
 
+        {/* Quais dernière mission — entre missions et après déco pad */}
+        {(() => {
+          const lastMission = missions
+            .filter(m => m.ended_at)
+            .sort((a, b) => new Date(b.ended_at!).getTime() - new Date(a.ended_at!).getTime())[0]
+          const supportsWithQuai = lastMission?.supports?.filter(s => s.quai != null && s.quai !== '') ?? []
+          if (!lastMission || supportsWithQuai.length === 0) return null
+          if (isInMission) return null
+          if (session?.left_at) return null
+          return (
+            <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] px-4 py-3 flex flex-col gap-2">
+              <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-semibold">
+                Mission #{lastMission.mission_number} — quais
+              </p>
+              <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                {supportsWithQuai.map(s => (
+                  <div key={s.support_index} className="flex items-baseline gap-1.5">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{s.label}</span>
+                    <span className="text-white font-bold text-lg tabular-nums leading-none">{s.quai}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Timeline */}
         <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4 flex flex-col gap-3">
           <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Timeline</p>
