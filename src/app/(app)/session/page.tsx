@@ -48,14 +48,14 @@ function InlineProductionStepper({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Stepper */}
-      <div className="flex items-stretch gap-2">
+    <div className="flex flex-col gap-2.5">
+      {/* Stepper row */}
+      <div className="bg-black/20 rounded-2xl p-1.5 flex items-center gap-1.5 border border-white/[0.04]">
         <button
           type="button"
           onClick={() => setValue(v => clamp(v - 1))}
           disabled={value <= min}
-          className="w-14 rounded-2xl bg-zinc-800/60 border border-white/[0.08] text-2xl font-bold text-zinc-400 disabled:opacity-20 active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
+          className="h-14 w-12 rounded-xl bg-zinc-800/70 text-xl font-bold text-zinc-500 disabled:opacity-20 active:scale-[0.92] transition-all flex items-center justify-center shrink-0 border border-white/[0.05]"
         >
           −
         </button>
@@ -69,13 +69,13 @@ function InlineProductionStepper({
             onBlur={commitEdit}
             onKeyDown={e => e.key === 'Enter' && commitEdit()}
             autoFocus
-            className="flex-1 bg-zinc-800/60 border-2 border-zinc-400/50 rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold focus:outline-none transition-all tabular-nums"
+            className="flex-1 h-14 bg-zinc-800/60 border-2 border-blue-500/40 rounded-xl px-3 text-white text-center text-4xl font-bold focus:outline-none transition-all tabular-nums"
           />
         ) : (
           <button
             type="button"
             onClick={() => { setEditStr(String(value)); setEditing(true) }}
-            className="flex-1 bg-zinc-800/60 border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold hover:border-white/20 active:scale-[0.97] transition-all tabular-nums"
+            className="flex-1 h-14 rounded-xl text-white text-center text-4xl font-bold tabular-nums active:scale-[0.97] transition-all"
           >
             {value}
           </button>
@@ -85,12 +85,11 @@ function InlineProductionStepper({
           type="button"
           onClick={() => setValue(v => clamp(v + 1))}
           disabled={value >= max}
-          className="w-20 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-600 text-white text-4xl font-bold border border-blue-300/20 shadow-[0_0_24px_rgba(59,130,246,0.5)] active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
+          className="h-14 w-[72px] rounded-xl bg-gradient-to-b from-blue-500 to-blue-700 text-white text-3xl font-bold border border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.55),0_1px_0_rgba(255,255,255,0.12)_inset] disabled:opacity-30 active:scale-[0.92] transition-all flex items-center justify-center shrink-0"
         >
           +
         </button>
       </div>
-
 
       {/* Valider */}
       {delta > 0 && (
@@ -98,9 +97,9 @@ function InlineProductionStepper({
           type="button"
           onClick={() => onSubmit(value)}
           disabled={loading}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-semibold border border-emerald-400/20 shadow-[0_0_16px_rgba(16,185,129,0.3)] hover:from-emerald-400 hover:to-emerald-600 disabled:opacity-40 active:scale-[0.97] transition-all text-sm"
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-semibold border border-emerald-400/20 shadow-[0_0_16px_rgba(16,185,129,0.35)] hover:from-emerald-400 hover:to-emerald-600 disabled:opacity-40 active:scale-[0.97] transition-all text-sm tracking-wide"
         >
-          {loading ? '…' : `✓ Valider — ${value} lignes finales`}
+          {loading ? '…' : `✓  ${value} lignes — valider`}
         </button>
       )}
     </div>
@@ -450,67 +449,78 @@ export default function SessionPage() {
 
         {/* Mission active */}
         {isInMission && !isPaused && (
-          <div className="bg-gradient-to-br from-blue-950/60 via-blue-950/20 to-zinc-900/0 border border-blue-800/40 rounded-2xl p-4 shadow-[0_0_40px_rgba(59,130,246,0.08)]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex-1">
-                <p className="text-blue-300 font-semibold text-base">
+          <div className="bg-gradient-to-br from-blue-950/70 via-blue-950/30 to-zinc-900/10 border border-blue-800/35 rounded-2xl shadow-[0_0_40px_rgba(59,130,246,0.1)] overflow-hidden">
+
+            {/* En-tête mission */}
+            <div className="flex items-start justify-between px-4 pt-4 pb-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-blue-200 font-bold text-lg leading-tight">
                   Mission #{activeMission.mission_number}
                 </p>
-                <p className="text-blue-300/60 text-sm">
-                  {activeMission.support_type === 'role' ? 'Roll' : 'Palette'} ×{activeMission.support_count}{' '}
-                  · {activeMission.total_pad_lines} lignes pad
-                </p>
-                <p className="text-blue-300/40 text-xs font-mono mt-0.5">
-                  {elapsed(activeMission.started_at)}
+                <p className="text-blue-300/55 text-sm mt-0.5">
+                  {activeMission.support_type === 'role' ? 'Roll' : 'Palette'} ×{activeMission.support_count}
+                  {' · '}{activeMission.total_pad_lines} lignes pad
                 </p>
                 {activeMission.supports?.some(s => s.quai) && (
-                  <p className="text-blue-300/50 text-xs mt-1">
+                  <p className="text-blue-300/40 text-xs mt-1">
                     {activeMission.supports!.filter(s => s.quai).map(s => `${s.label} : ${s.quai}`).join(' · ')}
                   </p>
                 )}
+                <p className="text-blue-300/30 text-xs font-mono mt-1">{elapsed(activeMission.started_at)}</p>
               </div>
               {realRemainingLines !== null && (
-                <div className="text-right ml-3">
-                  <p className="text-[10px] text-blue-300/40 uppercase tracking-wider">Restant</p>
-                  <p className="text-2xl font-bold text-blue-200 tabular-nums">{realRemainingLines}</p>
-                  <p className="text-[10px] text-blue-300/40">lignes</p>
+                <div className="text-right ml-4 shrink-0">
+                  <p className="text-[9px] text-blue-300/35 uppercase tracking-widest font-semibold">Restant</p>
+                  <p className="text-3xl font-bold text-blue-200/90 tabular-nums leading-tight">{realRemainingLines}</p>
+                  <p className="text-[9px] text-blue-300/35">lignes</p>
                 </div>
               )}
             </div>
-            <InlineProductionStepper
-              min={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0}
-              max={missions.reduce((a, m) => a + m.total_pad_lines, 0)}
-              onSubmit={v => handleProduction(v, null)}
-              loading={loading}
-            />
-            <BigButton
-              label="Fin mission"
-              icon={Square}
-              variant="danger"
-              onClick={() => setConfirmAction('endMission')}
-              loading={loading}
-              className="w-full mt-1"
-            />
-            <div className="flex items-stretch gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
-                className="flex-1 flex items-center gap-2.5 px-4 py-3.5 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 text-sm transition-all min-w-0"
-              >
-                <MessageSquare size={16} className="shrink-0" />
-                {activeMission.notes
-                  ? <span className="truncate text-zinc-400">{activeMission.notes}</span>
-                  : <span>Ajouter une note…</span>
-                }
-              </button>
-              <button
-                type="button"
-                onClick={() => setCalcModal({ missionId: activeMission.id, currentNote: activeMission.notes ?? null })}
-                className="px-4 py-3.5 rounded-2xl bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] text-zinc-500 hover:text-zinc-300 transition-all shrink-0"
-                title="Calculette"
-              >
-                <Calculator size={16} />
-              </button>
+
+            {/* Zone production */}
+            <div className="px-4 pb-3 flex flex-col gap-2">
+              <p className="text-[9px] text-blue-300/25 uppercase tracking-widest font-semibold text-center">Lignes finales</p>
+              <InlineProductionStepper
+                min={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0}
+                max={missions.reduce((a, m) => a + m.total_pad_lines, 0)}
+                onSubmit={v => handleProduction(v, null)}
+                loading={loading}
+              />
+            </div>
+
+            {/* Séparateur */}
+            <div className="mx-4 h-px bg-blue-900/40" />
+
+            {/* Fin mission + utilitaires */}
+            <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
+              <BigButton
+                label="Fin mission"
+                icon={Square}
+                variant="danger"
+                onClick={() => setConfirmAction('endMission')}
+                loading={loading}
+                className="w-full"
+              />
+              <div className="flex items-stretch gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNoteModal({ missionId: activeMission.id, text: activeMission.notes ?? '' })}
+                  className="flex-1 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-white/[0.05] hover:border-white/[0.10] text-zinc-500 hover:text-zinc-300 text-sm transition-all min-w-0"
+                >
+                  <MessageSquare size={15} className="shrink-0" />
+                  {activeMission.notes
+                    ? <span className="truncate text-zinc-400 text-xs">{activeMission.notes}</span>
+                    : <span className="text-xs">Ajouter une note…</span>
+                  }
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalcModal({ missionId: activeMission.id, currentNote: activeMission.notes ?? null })}
+                  className="px-4 py-3 rounded-2xl bg-zinc-900/50 border border-white/[0.05] hover:border-white/[0.10] text-zinc-500 hover:text-zinc-300 transition-all shrink-0"
+                >
+                  <Calculator size={15} />
+                </button>
+              </div>
             </div>
           </div>
         )}
