@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   LogIn, LogOut, Play, Square, Coffee, ChevronRight,
-  Zap, AlarmClock, Truck, MessageSquare, Calculator
+  AlarmClock, Truck, MessageSquare, Calculator
 } from 'lucide-react'
 import { useSessionStore } from '@/store/session'
 import { useWakeLock } from '@/hooks/useWakeLock'
@@ -12,7 +12,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { BigButton } from '@/components/ui/BigButton'
 import { Modal } from '@/components/ui/Modal'
 import { MissionForm } from '@/components/session/MissionForm'
-import { ProductionInput } from '@/components/session/ProductionInput'
+
 import { MissionCalculator } from '@/components/session/MissionCalculator'
 import { AdjustTotalModal } from '@/components/session/AdjustTotalModal'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
@@ -20,12 +20,114 @@ import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
 import { formatDeadTime } from '@/lib/productivity'
 
+function InlineProductionStepper({
+  min,
+  diffLinesTotal,
+  totalFinalLines,
+  onSubmit,
+  loading,
+}: {
+  min: number
+  diffLinesTotal: number | null
+  totalFinalLines: number | null
+  onSubmit: (v: number) => void
+  loading?: boolean
+}) {
+  const [value, setValue] = useState(min)
+  const [editing, setEditing] = useState(false)
+  const [editStr, setEditStr] = useState(String(min))
+  const prevMin = useRef(min)
+  if (prevMin.current !== min) { prevMin.current = min; setValue(min) }
+
+  const delta = value - min
+  const avanceRetard = diffLinesTotal !== null && totalFinalLines !== null
+    ? Math.round(value - (totalFinalLines - diffLinesTotal))
+    : null
+
+  function commitEdit() {
+    const n = parseInt(editStr)
+    if (!isNaN(n) && n >= min) setValue(n)
+    setEditing(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Stepper */}
+      <div className="flex items-stretch gap-2">
+        <button
+          type="button"
+          onClick={() => setValue(v => Math.max(min, v - 1))}
+          disabled={value <= min}
+          className="w-14 rounded-2xl bg-zinc-800/60 border border-white/[0.08] text-2xl font-bold text-zinc-400 disabled:opacity-20 active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
+        >
+          −
+        </button>
+
+        {editing ? (
+          <input
+            type="number"
+            inputMode="numeric"
+            value={editStr}
+            onChange={e => setEditStr(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={e => e.key === 'Enter' && commitEdit()}
+            autoFocus
+            className="flex-1 bg-zinc-800/60 border-2 border-zinc-400/50 rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold focus:outline-none transition-all tabular-nums"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setEditStr(String(value)); setEditing(true) }}
+            className="flex-1 bg-zinc-800/60 border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-center text-4xl font-bold hover:border-white/20 active:scale-[0.97] transition-all tabular-nums"
+          >
+            {value}
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setValue(v => v + 1)}
+          className="w-20 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-600 text-white text-4xl font-bold border border-blue-300/20 shadow-[0_0_24px_rgba(59,130,246,0.5)] active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Feedback */}
+      <div className="min-h-[18px] text-center">
+        {delta > 0 ? (
+          <p className="text-xs font-semibold text-emerald-400">+{delta} lignes depuis la dernière saisie</p>
+        ) : min > 0 ? (
+          <p className="text-xs text-zinc-600">Aucune ligne ajoutée</p>
+        ) : null}
+        {avanceRetard !== null && (
+          <p className={`text-xs font-semibold ${avanceRetard >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {avanceRetard >= 0 ? `+${avanceRetard}` : avanceRetard} lignes {avanceRetard >= 0 ? "d'avance" : 'de retard'} sur l&apos;objectif
+          </p>
+        )}
+      </div>
+
+      {/* Valider */}
+      {delta > 0 && (
+        <button
+          type="button"
+          onClick={() => onSubmit(value)}
+          disabled={loading}
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-semibold border border-emerald-400/20 shadow-[0_0_16px_rgba(16,185,129,0.3)] hover:from-emerald-400 hover:to-emerald-600 disabled:opacity-40 active:scale-[0.97] transition-all text-sm"
+        >
+          {loading ? '…' : `✓ Valider — ${value} lignes finales`}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function SessionPage() {
   const router = useRouter()
   const store = useSessionStore()
   const [loading, setLoading] = useState(false)
   const [showMissionForm, setShowMissionForm] = useState(false)
-  const [showProductionInput, setShowProductionInput] = useState(false)
+
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
   const [calcModal, setCalcModal] = useState<{ missionId: string; currentNote: string | null } | null>(null)
@@ -185,7 +287,6 @@ export default function SessionPage() {
     const snapshot = await snapRes.json()
     store.addSnapshot(snapshot)
 
-    setShowProductionInput(false)
     setLoading(false)
   }
 
@@ -391,22 +492,21 @@ export default function SessionPage() {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <BigButton
-                label="Production"
-                icon={Zap}
-                variant="primary"
-                onClick={() => setShowProductionInput(true)}
-                loading={loading}
-              />
-              <BigButton
-                label="Fin mission"
-                icon={Square}
-                variant="danger"
-                onClick={() => setConfirmAction('endMission')}
-                loading={loading}
-              />
-            </div>
+            <InlineProductionStepper
+              min={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0}
+              diffLinesTotal={stats?.diffLinesTotal ?? null}
+              totalFinalLines={stats?.totalFinalLines ?? null}
+              onSubmit={v => handleProduction(v, null)}
+              loading={loading}
+            />
+            <BigButton
+              label="Fin mission"
+              icon={Square}
+              variant="danger"
+              onClick={() => setConfirmAction('endMission')}
+              loading={loading}
+              className="w-full mt-1"
+            />
             <div className="flex items-stretch gap-2 mt-2">
               <button
                 type="button"
@@ -625,18 +725,6 @@ export default function SessionPage() {
         </Modal>
       )}
 
-      {showProductionInput && (
-        <Modal title="Injection Production" onClose={() => setShowProductionInput(false)}>
-          <ProductionInput
-            currentLines={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? null}
-            maxLines={missions.reduce((a, m) => a + m.total_pad_lines, 0)}
-            stats={stats}
-            onSubmit={handleProduction}
-            onCancel={() => setShowProductionInput(false)}
-            loading={loading}
-          />
-        </Modal>
-      )}
 
       {confirmAction && (
         <Modal
