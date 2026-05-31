@@ -62,7 +62,7 @@ function SupportRow({
           className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all appearance-none"
         >
           <option value="">—</option>
-          <optgroup label="Villes">
+          <optgroup label={type === 'role' ? 'Préparation avancée' : 'Filmage'}>
             {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
           </optgroup>
           {type === 'role' && (
