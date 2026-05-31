@@ -22,10 +22,12 @@ import { formatDeadTime } from '@/lib/productivity'
 
 function InlineProductionStepper({
   min,
+  max,
   onSubmit,
   loading,
 }: {
   min: number
+  max: number
   onSubmit: (v: number) => void
   loading?: boolean
 }) {
@@ -37,9 +39,11 @@ function InlineProductionStepper({
 
   const delta = value - min
 
+  function clamp(n: number) { return Math.max(min, Math.min(max, n)) }
+
   function commitEdit() {
     const n = parseInt(editStr)
-    if (!isNaN(n) && n >= min) setValue(n)
+    if (!isNaN(n)) setValue(clamp(n))
     setEditing(false)
   }
 
@@ -49,7 +53,7 @@ function InlineProductionStepper({
       <div className="flex items-stretch gap-2">
         <button
           type="button"
-          onClick={() => setValue(v => Math.max(min, v - 1))}
+          onClick={() => setValue(v => clamp(v - 1))}
           disabled={value <= min}
           className="w-14 rounded-2xl bg-zinc-800/60 border border-white/[0.08] text-2xl font-bold text-zinc-400 disabled:opacity-20 active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
         >
@@ -79,7 +83,8 @@ function InlineProductionStepper({
 
         <button
           type="button"
-          onClick={() => setValue(v => v + 1)}
+          onClick={() => setValue(v => clamp(v + 1))}
+          disabled={value >= max}
           className="w-20 rounded-2xl bg-gradient-to-b from-blue-400 to-blue-600 text-white text-4xl font-bold border border-blue-300/20 shadow-[0_0_24px_rgba(59,130,246,0.5)] active:scale-[0.93] transition-all flex items-center justify-center shrink-0"
         >
           +
@@ -474,6 +479,7 @@ export default function SessionPage() {
             </div>
             <InlineProductionStepper
               min={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0}
+              max={missions.reduce((a, m) => a + m.total_pad_lines, 0)}
               onSubmit={v => handleProduction(v, null)}
               loading={loading}
             />
