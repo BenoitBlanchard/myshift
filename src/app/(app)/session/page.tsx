@@ -18,6 +18,7 @@ import { AdjustTotalModal } from '@/components/session/AdjustTotalModal'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
+import { formatDeadTime } from '@/lib/productivity'
 
 export default function SessionPage() {
   const router = useRouter()
@@ -376,6 +377,11 @@ export default function SessionPage() {
                 <p className="text-blue-300/40 text-xs font-mono mt-0.5">
                   {elapsed(activeMission.started_at)}
                 </p>
+                {activeMission.supports?.some(s => s.quai) && (
+                  <p className="text-blue-300/50 text-xs mt-1">
+                    {activeMission.supports!.filter(s => s.quai).map(s => `${s.label} : ${s.quai}`).join(' · ')}
+                  </p>
+                )}
               </div>
               {realRemainingLines !== null && (
                 <div className="text-right ml-3">
@@ -638,11 +644,32 @@ export default function SessionPage() {
           onClose={() => setConfirmAction(null)}
         >
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-zinc-400">
-              {confirmAction === 'endMission'
-                ? 'La mission sera clôturée. Cette action est irréversible.'
-                : 'Le pad sera déconnecté. Les calculs de productivité s\'arrêteront.'}
-            </p>
+            {confirmAction === 'endMission' ? (
+              <div className="flex flex-col gap-2">
+                {stats?.currentDeadTimeMs != null && (
+                  <div className="flex items-center gap-2 bg-amber-950/30 border border-amber-800/30 rounded-xl px-3 py-2">
+                    <span className="text-amber-400 font-mono font-semibold tabular-nums text-sm">
+                      {formatDeadTime(stats.currentDeadTimeMs)}
+                    </span>
+                    <span className="text-amber-600 text-xs">temps mort</span>
+                  </div>
+                )}
+                {activeMission?.supports?.some(s => s.quai) && (
+                  <div className="bg-zinc-800/60 border border-white/[0.06] rounded-xl px-3 py-2 flex flex-col gap-1">
+                    {activeMission.supports!.filter(s => s.quai).map(s => (
+                      <div key={s.support_index} className="flex justify-between text-xs">
+                        <span className="text-zinc-500">{s.label}</span>
+                        <span className="text-zinc-300 font-semibold">{s.quai}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-400">
+                Le pad sera déconnecté. Les calculs de productivité s&apos;arrêteront.
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
