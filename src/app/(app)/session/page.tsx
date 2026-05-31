@@ -22,14 +22,10 @@ import { formatDeadTime } from '@/lib/productivity'
 
 function InlineProductionStepper({
   min,
-  diffLinesTotal,
-  totalFinalLines,
   onSubmit,
   loading,
 }: {
   min: number
-  diffLinesTotal: number | null
-  totalFinalLines: number | null
   onSubmit: (v: number) => void
   loading?: boolean
 }) {
@@ -40,9 +36,6 @@ function InlineProductionStepper({
   if (prevMin.current !== min) { prevMin.current = min; setValue(min) }
 
   const delta = value - min
-  const avanceRetard = diffLinesTotal !== null && totalFinalLines !== null
-    ? Math.round(value - (totalFinalLines - diffLinesTotal))
-    : null
 
   function commitEdit() {
     const n = parseInt(editStr)
@@ -93,19 +86,6 @@ function InlineProductionStepper({
         </button>
       </div>
 
-      {/* Feedback */}
-      <div className="min-h-[18px] text-center">
-        {delta > 0 ? (
-          <p className="text-xs font-semibold text-emerald-400">+{delta} lignes depuis la dernière saisie</p>
-        ) : min > 0 ? (
-          <p className="text-xs text-zinc-600">Aucune ligne ajoutée</p>
-        ) : null}
-        {avanceRetard !== null && (
-          <p className={`text-xs font-semibold ${avanceRetard >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-            {avanceRetard >= 0 ? `+${avanceRetard}` : avanceRetard} lignes {avanceRetard >= 0 ? "d'avance" : 'de retard'} sur l&apos;objectif
-          </p>
-        )}
-      </div>
 
       {/* Valider */}
       {delta > 0 && (
@@ -494,8 +474,6 @@ export default function SessionPage() {
             </div>
             <InlineProductionStepper
               min={stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0}
-              diffLinesTotal={stats?.diffLinesTotal ?? null}
-              totalFinalLines={stats?.totalFinalLines ?? null}
               onSubmit={v => handleProduction(v, null)}
               loading={loading}
             />
