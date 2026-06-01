@@ -136,6 +136,9 @@ export default function DashboardPage() {
 
   const avgWeightPerRoll = rolls.length ? rolls.reduce((a, m) => a + m.total_weight_kg, 0) / rolls.length : null
 
+  const daysWithLph = worked.filter(d => d.lphReal !== null)
+  const avgMonthLph = daysWithLph.length ? daysWithLph.reduce((a, d) => a + (d.lphReal ?? 0), 0) / daysWithLph.length : null
+
 
   // Top 8 journées les plus chargées en poids
   const top8 = [...days]
@@ -219,6 +222,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">Moyennes du mois</p>
               <div className="grid grid-cols-2 gap-2">
+                <MiniCard label="Moy. l/h du mois" value={avgMonthLph !== null ? `${formatLph(avgMonthLph)} l/h` : '—'} color={avgMonthLph && avgMonthLph >= targetLph ? C.green : C.amber} />
                 <MiniCard label="Temps mort / jour" value={`${avgDeadMin} min`} color={C.amber} />
                 <MiniCard label="Temps de travail / jour" value={avgWorkMs > 0 ? formatDuration(avgWorkMs) : '—'} color={C.teal} />
                 <MiniCard label="Missions / jour" value={avgMissions.toFixed(1)} color={C.blue} />
