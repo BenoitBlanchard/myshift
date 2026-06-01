@@ -5,7 +5,7 @@ import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 
 const MIN_YEAR = 2026
-const MIN_MONTH = 6 // juin 2026 — premier mois d'utilisation
+const MIN_MONTH = 1
 
 export default function ExportPage() {
   const now = new Date()
