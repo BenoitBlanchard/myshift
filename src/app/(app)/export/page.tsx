@@ -1,15 +1,33 @@
 'use client'
 
 import { useState } from 'react'
-import { Download } from 'lucide-react'
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
+
+const MIN_YEAR = 2026
+const MIN_MONTH = 6 // juin 2026 — premier mois d'utilisation
 
 export default function ExportPage() {
   const now = new Date()
-  const [month, setMonth] = useState(now.getMonth() + 1)
   const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth() + 1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const isMin = year === MIN_YEAR && month === MIN_MONTH
+  const isMax = year === now.getFullYear() && month === now.getMonth() + 1
+
+  function prev() {
+    if (isMin) return
+    if (month === 1) { setYear(y => y - 1); setMonth(12) }
+    else setMonth(m => m - 1)
+  }
+
+  function next() {
+    if (isMax) return
+    if (month === 12) { setYear(y => y + 1); setMonth(1) }
+    else setMonth(m => m + 1)
+  }
 
   async function handleExport() {
     setLoading(true)
@@ -18,7 +36,7 @@ export default function ExportPage() {
       const res = await fetch(`/api/export?month=${month}&year=${year}`)
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error ?? 'Erreur export')
+        setError(data.error ?? 'Aucune donnée pour cette période')
         return
       }
       const blob = await res.blob()
@@ -33,81 +51,55 @@ export default function ExportPage() {
     }
   }
 
-  const monthName = new Date(year, month - 1).toLocaleString('fr-FR', { month: 'long' })
-  const years = [now.getFullYear(), now.getFullYear() - 1]
+  const monthLabel = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 
   return (
     <>
       <TopBar title="Export Excel" />
 
-      <main className="px-4 pt-4 pb-4 flex flex-col gap-4 max-w-lg mx-auto">
-        <p className="text-sm text-gray-400">
-          Télécharge un fichier Excel avec tes stats mensuelles : détail par session, missions, et récapitulatif.
-        </p>
+      <main className="px-4 pt-4 pb-4 flex flex-col gap-5 max-w-lg mx-auto">
 
-        {/* Sélecteur période */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-400 font-medium">Mois</label>
-            <div className="grid grid-cols-3 gap-2">
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                <button
-                  key={m}
-                  onClick={() => setMonth(m)}
-                  className={`py-3 rounded-xl text-sm font-semibold transition-all ${
-                    month === m
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  {new Date(2000, m - 1).toLocaleString('fr-FR', { month: 'short' })}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-400 font-medium">Année</label>
-            <div className="flex gap-2">
-              {years.map(y => (
-                <button
-                  key={y}
-                  onClick={() => setYear(y)}
-                  className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all ${
-                    year === y
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  {y}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Sélecteur mois */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={prev}
+            disabled={isMin}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-800/60 border border-white/[0.06] text-zinc-400 hover:text-white disabled:opacity-30 active:scale-[0.93] transition-all"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <p className="text-base font-semibold text-white capitalize">{monthLabel}</p>
+          <button
+            onClick={next}
+            disabled={isMax}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-800/60 border border-white/[0.06] text-zinc-400 hover:text-white disabled:opacity-30 active:scale-[0.93] transition-all"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
 
+        {/* Bouton télécharger */}
+        <button
+          onClick={handleExport}
+          disabled={loading}
+          className="flex items-center justify-center gap-3 py-5 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 border border-emerald-400/20 shadow-[0_0_24px_rgba(16,185,129,0.3)] hover:from-emerald-400 hover:to-emerald-600 disabled:opacity-50 text-white font-bold text-lg active:scale-[0.97] transition-all"
+        >
+          <Download size={22} />
+          {loading ? 'Génération…' : `Télécharger — ${monthLabel}`}
+        </button>
+
         {error && (
-          <p className="text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-xl px-4 py-3 text-center">
+          <p className="text-red-400 text-sm bg-red-950/30 border border-red-800/40 rounded-2xl px-4 py-3 text-center">
             {error}
           </p>
         )}
 
-        <button
-          onClick={handleExport}
-          disabled={loading}
-          className="flex items-center justify-center gap-3 py-5 rounded-2xl bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-bold text-lg transition-colors"
-        >
-          <Download size={22} />
-          {loading ? 'Génération…' : `Télécharger — ${monthName} ${year}`}
-        </button>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-500">
-          <p className="font-medium text-gray-400 mb-2">Le fichier contient :</p>
-          <ul className="flex flex-col gap-1 list-disc list-inside">
-            <li>Détail de chaque session (horaires, lignes/h, poids)</li>
-            <li>Détail de chaque mission (type, supports, durée)</li>
-            <li>Statistiques mensuelles (moyennes, totaux, répartition rôles/palettes)</li>
-          </ul>
+        {/* Contenu */}
+        <div className="bg-zinc-900/50 border border-white/[0.06] rounded-2xl p-4 text-sm text-zinc-500 flex flex-col gap-1.5">
+          <p className="font-medium text-zinc-400 mb-1">Le fichier contient :</p>
+          <p>· Sessions — horaires, l/h Réel, temps travaillé/production, temps mort</p>
+          <p>· Missions — type, quai, durée, l/h, notes</p>
+          <p>· Stats mensuelles — moyennes, totaux, répartition rolls/palettes</p>
         </div>
       </main>
     </>
