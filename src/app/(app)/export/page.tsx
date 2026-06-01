@@ -4,9 +4,6 @@ import { useState } from 'react'
 import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 
-const MIN_YEAR = 2026
-const MIN_MONTH = 1
-
 export default function ExportPage() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -14,8 +11,8 @@ export default function ExportPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const isMin = year === MIN_YEAR && month === MIN_MONTH
-  const isMax = year === now.getFullYear() && month === now.getMonth() + 1
+  const isMin = year === 2026 && month === 4
+  const isMax = false
 
   function prev() {
     if (isMin) return
