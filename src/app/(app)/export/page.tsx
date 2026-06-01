@@ -12,7 +12,7 @@ export default function ExportPage() {
   const [error, setError] = useState('')
 
   const isMin = year === 2026 && month === 4
-  const isMax = false
+  const isMax = year === now.getFullYear() && month === now.getMonth() + 1
 
   function prev() {
     if (isMin) return
