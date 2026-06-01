@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   const enriched = await Promise.all(
     sessions.map(async s => {
       const [missionsRes, pausesRes, snapshotsRes] = await Promise.all([
-        supabase.from('missions').select('*').eq('session_id', s.id).order('mission_number'),
+        supabase.from('missions').select('*, mission_supports(*)').eq('session_id', s.id).order('mission_number'),
         supabase.from('pauses').select('*').eq('session_id', s.id).order('started_at'),
         supabase.from('production_snapshots').select('*').eq('session_id', s.id).order('recorded_at'),
       ])
