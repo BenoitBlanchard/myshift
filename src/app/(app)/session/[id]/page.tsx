@@ -110,20 +110,38 @@ export default async function SessionDetailPage({
               Missions ({missions.length})
             </p>
             <div className="flex flex-col gap-3">
-              {missions.map(m => (
-                <div key={m.id} className="border-b border-gray-800 last:border-0 pb-3 last:pb-0">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-white">
-                      Mission #{m.mission_number} — {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
-                    </span>
-                    <span className="text-gray-400 text-sm">{m.total_pad_lines} lig.</span>
+              {missions.map(m => {
+                const durationMs = m.started_at && m.ended_at
+                  ? new Date(m.ended_at).getTime() - new Date(m.started_at).getTime()
+                  : null
+                const lph = durationMs && durationMs > 0 && m.total_pad_lines > 0
+                  ? m.total_pad_lines / (durationMs / 3_600_000)
+                  : null
+                return (
+                  <div key={m.id} className="border-b border-gray-800 last:border-0 pb-3 last:pb-0">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-white">
+                        Mission #{m.mission_number} — {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
+                      </span>
+                      <span className="text-gray-400 text-sm">{m.total_pad_lines} lig.</span>
+                    </div>
+                    <div className="flex gap-4 text-xs text-gray-500 mt-1">
+                      <span>{formatTimestamp(m.started_at)} → {formatTimestamp(m.ended_at)}</span>
+                      <span>{m.total_weight_kg}kg</span>
+                    </div>
+                    {(durationMs !== null || lph !== null) && (
+                      <div className="flex gap-3 text-xs mt-1">
+                        {durationMs !== null && (
+                          <span className="text-gray-600">{formatDuration(durationMs)}</span>
+                        )}
+                        {lph !== null && (
+                          <span className="text-gray-500 font-medium">{formatLph(lph)} l/h</span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                    <span>{formatTimestamp(m.started_at)} → {formatTimestamp(m.ended_at)}</span>
-                    <span>{m.total_weight_kg}kg</span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
