@@ -136,6 +136,12 @@ export default function DashboardPage() {
 
   const avgWeightPerRoll = rolls.length ? rolls.reduce((a, m) => a + m.total_weight_kg, 0) / rolls.length : null
 
+  const totalPauseMs = worked.reduce((a, d) => {
+    const dayPause = d.pauses.filter(p => p.ended_at).reduce((acc, p) => acc + new Date(p.ended_at!).getTime() - new Date(p.started_at).getTime(), 0)
+    return a + dayPause
+  }, 0)
+  const avgPauseMs = n > 0 ? totalPauseMs / n : 0
+
   const daysWithLph = worked.filter(d => d.lphReal !== null)
   const avgMonthLph = daysWithLph.length ? daysWithLph.reduce((a, d) => a + (d.lphReal ?? 0), 0) / daysWithLph.length : null
 
@@ -224,6 +230,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-2">
                 <MiniCard label="Moy. l/h du mois" value={avgMonthLph !== null ? `${formatLph(avgMonthLph)} l/h` : '—'} color={avgMonthLph && avgMonthLph >= targetLph ? C.green : C.amber} />
                 <MiniCard label="Temps mort / jour" value={`${avgDeadMin} min`} color={C.amber} />
+                <MiniCard label="Temps de pause / jour" value={avgPauseMs > 0 ? formatDuration(avgPauseMs) : '—'} color={C.amber} />
                 <MiniCard label="Temps de travail / jour" value={avgWorkMs > 0 ? formatDuration(avgWorkMs) : '—'} color={C.teal} />
                 <MiniCard label="Missions / jour" value={avgMissions.toFixed(1)} color={C.blue} />
                 <MiniCard label="Poids / jour" value={`${Math.round(avgWeight)} kg`} color={C.purple} />
