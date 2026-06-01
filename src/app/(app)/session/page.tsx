@@ -745,14 +745,6 @@ export default function SessionPage() {
           <div className="flex flex-col gap-4">
             {confirmAction === 'endMission' ? (
               <div className="flex flex-col gap-2">
-                {stats?.currentDeadTimeMs != null && (
-                  <div className="flex items-center gap-2 bg-amber-950/30 border border-amber-800/30 rounded-xl px-3 py-2">
-                    <span className="text-amber-400 font-mono font-semibold tabular-nums text-sm">
-                      {formatDeadTime(stats.currentDeadTimeMs)}
-                    </span>
-                    <span className="text-amber-600 text-xs">temps mort</span>
-                  </div>
-                )}
                 {activeMission?.supports?.some(s => s.quai) && (
                   <div className="bg-zinc-800/60 border border-white/[0.06] rounded-xl px-3 py-2 flex flex-col gap-1">
                     {activeMission.supports!.filter(s => s.quai).map(s => (
