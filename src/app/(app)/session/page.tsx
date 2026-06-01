@@ -611,116 +611,6 @@ export default function SessionPage() {
           )}
         </div>
 
-        {/* Résumé missions */}
-        {missions.length > 0 && (
-          <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
-            <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">
-              Missions ({missions.length})
-            </p>
-            <div className="flex flex-col gap-3">
-              {missions.map(m => {
-                // Cherche un snapshot pris PENDANT cette mission avec remaining_command_lines
-                const mSnap = snapshots
-                  .filter(s =>
-                    s.mission_id === m.id &&
-                    s.remaining_command_lines != null &&
-                    m.started_at && m.ended_at &&
-                    new Date(s.recorded_at) >= new Date(m.started_at) &&
-                    new Date(s.recorded_at) <= new Date(m.ended_at)
-                  )
-                  .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())[0]
-
-                let reguleDiff: number | null = null
-                if (mSnap && mSnap.remaining_command_lines != null) {
-                  const snapshotTime = new Date(mSnap.recorded_at)
-                  const linesBeforeSnap = missions
-                    .filter(m2 => m2.id !== m.id && m2.ended_at && new Date(m2.ended_at) <= snapshotTime)
-                    .reduce((acc, m2) => acc + m2.total_pad_lines, 0)
-                  const alreadyCounted = Math.max(0, mSnap.total_final_lines - linesBeforeSnap)
-                  const effectiveTotal = alreadyCounted + mSnap.remaining_command_lines
-                  reguleDiff = effectiveTotal - m.total_pad_lines
-                }
-
-                const mDurationMs = m.started_at && m.ended_at
-                  ? new Date(m.ended_at).getTime() - new Date(m.started_at).getTime()
-                  : null
-                const mLph = mDurationMs && mDurationMs > 0 && m.total_pad_lines > 0
-                  ? m.total_pad_lines / (mDurationMs / 3_600_000)
-                  : null
-
-                return (
-                  <div key={m.id} className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-400">
-                        #{m.mission_number} · {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
-                      </span>
-                      <div className="flex items-center gap-3 text-right">
-                        <span className="text-white font-semibold">{m.total_pad_lines} lig.</span>
-                        <span className="text-zinc-500">{m.total_weight_kg}kg</span>
-                        {m.ended_at ? (
-                          <span className="text-emerald-400 text-xs">✓</span>
-                        ) : (
-                          <span className="text-blue-400 text-xs animate-pulse">⏱</span>
-                        )}
-                      </div>
-                    </div>
-                    {(mDurationMs !== null || mLph !== null) && (
-                      <div className="flex items-center gap-2 pl-1">
-                        {mDurationMs !== null && (
-                          <span className="text-xs text-zinc-600">{formatDuration(mDurationMs)}</span>
-                        )}
-                        {mLph !== null && (
-                          <span className="text-xs text-zinc-600">·</span>
-                        )}
-                        {mLph !== null && (
-                          <span className="text-xs text-zinc-500 font-medium">{mLph.toFixed(1)} l/h</span>
-                        )}
-                      </div>
-                    )}
-                    {reguleDiff !== null && (
-                      <p className={`text-xs pl-1 font-semibold ${reguleDiff < 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                        régule {reguleDiff > 0 ? '+' : ''}{reguleDiff} lig.
-                      </p>
-                    )}
-                    {m.notes && (
-                      <p className="text-xs text-zinc-500 pl-1 leading-relaxed">{m.notes}</p>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setNoteModal({ missionId: m.id, text: m.notes ?? '' })}
-                        className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors"
-                      >
-                        <MessageSquare size={11} />
-                        {m.notes ? 'Modifier la note' : 'Ajouter une note'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCalcModal({ missionId: m.id, currentNote: m.notes ?? null })}
-                        className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-400 transition-colors"
-                        title="Calculette"
-                      >
-                        <Calculator size={11} />
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            {session?.lines_adjustment != null && session.lines_adjustment !== 0 && (
-              <p className={`text-xs font-semibold pl-1 mt-2 ${session.lines_adjustment < 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                régule {session.lines_adjustment > 0 ? '+' : ''}{session.lines_adjustment} lig.
-              </p>
-            )}
-            <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between text-sm">
-              <span className="text-zinc-500">Total pad</span>
-              <span className="text-white font-semibold tabular-nums">
-                {missions.reduce((a, m) => a + m.total_pad_lines, 0)} lignes ·{' '}
-                {Math.round(missions.reduce((a, m) => a + m.total_weight_kg, 0))}kg
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Récap complet fin de journée */}
         {session?.left_at && (
@@ -765,6 +655,18 @@ export default function SessionPage() {
                       <p className="text-xl font-bold text-white">{formatDuration(new Date(session.pad_disconnected_at).getTime() - new Date(session.pad_connected_at).getTime())}</p>
                     </div>
                   )}
+                  <div>
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Total lignes</p>
+                    <p className="text-xl font-bold text-white tabular-nums">
+                      {stats?.totalFinalLines ?? missions.reduce((a, m) => a + m.total_pad_lines, 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Poids total</p>
+                    <p className="text-xl font-bold text-white tabular-nums">
+                      {Math.round(missions.reduce((a, m) => a + m.total_weight_kg, 0))} kg
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
