@@ -14,7 +14,7 @@ import { Modal } from '@/components/ui/Modal'
 import { MissionForm } from '@/components/session/MissionForm'
 
 import { MissionCalculator } from '@/components/session/MissionCalculator'
-import { AdjustTotalModal } from '@/components/session/AdjustTotalModal'
+
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
@@ -115,7 +115,7 @@ export default function SessionPage() {
   const [showPauseModal, setShowPauseModal] = useState(false)
   const [noteModal, setNoteModal] = useState<{ missionId: string; text: string } | null>(null)
   const [calcModal, setCalcModal] = useState<{ missionId: string; currentNote: string | null } | null>(null)
-  const [showAdjustModal, setShowAdjustModal] = useState(false)
+
   const [confirmAction, setConfirmAction] = useState<'endMission' | 'padDisconnect' | null>(null)
   const [tick, setTick] = useState(0)
 
@@ -349,23 +349,6 @@ export default function SessionPage() {
     setLoading(false)
   }
 
-  async function handleSaveAdjust(newTotal: number) {
-    if (!session) return
-    const currentAdjustment = session.lines_adjustment ?? 0
-    const currentTotal = stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0
-    const baseTotal = (currentTotal as number) - currentAdjustment
-    const newAdjustment = newTotal - baseTotal
-    setLoading(true)
-    const res = await fetch('/api/sessions', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: session.id, lines_adjustment: newAdjustment === 0 ? null : newAdjustment }),
-    })
-    const updated = await res.json()
-    store.updateSession(updated)
-    setShowAdjustModal(false)
-    setLoading(false)
-  }
 
   async function handleSaveCalc(newNote: string) {
     if (!calcModal) return
@@ -736,18 +719,6 @@ export default function SessionPage() {
                 {Math.round(missions.reduce((a, m) => a + m.total_weight_kg, 0))}kg
               </span>
             </div>
-            {(stats?.totalFinalLines != null || lastSnap) && (
-              <button
-                type="button"
-                onClick={() => setShowAdjustModal(true)}
-                className="mt-1 w-full flex justify-between items-center text-sm hover:bg-zinc-800/40 rounded-xl px-1 py-0.5 -mx-1 transition-colors group"
-              >
-                <span className="text-zinc-500 group-hover:text-zinc-400 transition-colors">Lignes finales (pad)</span>
-                <span className="text-blue-400 font-semibold tabular-nums underline decoration-dotted underline-offset-2">
-                  {stats?.totalFinalLines ?? lastSnap?.total_final_lines}
-                </span>
-              </button>
-            )}
           </div>
         )}
       </main>
@@ -823,18 +794,6 @@ export default function SessionPage() {
         </Modal>
       )}
 
-      {showAdjustModal && (() => {
-        const currentTotal = stats?.totalFinalLines ?? lastSnap?.total_final_lines ?? 0
-        return (
-          <AdjustTotalModal
-            currentTotal={currentTotal as number}
-            currentAdjustment={session?.lines_adjustment ?? 0}
-            onSave={handleSaveAdjust}
-            onClose={() => setShowAdjustModal(false)}
-            loading={loading}
-          />
-        )
-      })()}
 
       {calcModal && (
         <MissionCalculator
