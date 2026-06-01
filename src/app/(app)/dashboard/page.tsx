@@ -136,11 +136,6 @@ export default function DashboardPage() {
 
   const avgWeightPerRoll = rolls.length ? rolls.reduce((a, m) => a + m.total_weight_kg, 0) / rolls.length : null
 
-  // Histogramme Réel l/h par jour
-  const lphBarData = days.map(d => ({
-    day: parseInt(d.session.date.split('-')[2]),
-    lph: d.lphReal !== null ? parseFloat(d.lphReal.toFixed(1)) : 0,
-  }))
 
   // Top 8 journées les plus chargées en poids
   const top8 = [...days]
@@ -219,26 +214,6 @@ export default function DashboardPage() {
               <p className="text-white font-bold text-xl tabular-nums">{worked.length}</p>
             </div>
 
-            {/* Histogramme Réel l/h */}
-            {lphBarData.length > 0 && (
-              <div className="bg-zinc-900 border border-white/[0.06] rounded-2xl p-4">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Réel l/h par jour</p>
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={lphBarData} barSize={lphBarData.length > 15 ? 10 : 16} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-                    <XAxis dataKey="day" tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
-                    <Tooltip content={<DarkTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-                    <ReferenceLine y={targetLph} stroke="#6366f1" strokeDasharray="4 3" strokeWidth={1.5} />
-                    <Bar dataKey="lph" name="l/h" radius={[4, 4, 0, 0]}>
-                      {lphBarData.map((d, i) => (
-                        <Cell key={i} fill={d.lph >= targetLph * 1.05 ? C.green : d.lph >= targetLph * 0.95 ? C.amber : d.lph > 0 ? C.red : '#3f3f46'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-[9px] text-indigo-400 mt-1">— objectif {targetLph} l/h</p>
-              </div>
-            )}
 
             {/* Grille moyennes */}
             <div>
