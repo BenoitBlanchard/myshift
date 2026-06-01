@@ -18,7 +18,7 @@ import { MissionCalculator } from '@/components/session/MissionCalculator'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
-import { formatDeadTime, formatDuration } from '@/lib/productivity'
+import { formatDeadTime, formatDuration, formatLph } from '@/lib/productivity'
 
 function InlineProductionStepper({
   min,
@@ -720,6 +720,138 @@ export default function SessionPage() {
               </span>
             </div>
           </div>
+        )}
+
+        {/* Récap complet fin de journée */}
+        {session?.left_at && (
+          <>
+            {/* Stats */}
+            {stats && (stats.pad !== null || stats.theoretical !== null) && (
+              <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
+                <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Productivité</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {stats.pad !== null && (
+                    <div>
+                      <p className="text-[10px] text-zinc-600 uppercase tracking-wider">PAD</p>
+                      <p className="text-2xl font-bold text-white tabular-nums">{formatLph(stats.pad)}<span className="text-sm font-normal text-zinc-500"> l/h</span></p>
+                    </div>
+                  )}
+                  {stats.theoretical !== null && (
+                    <div>
+                      <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Réel</p>
+                      <p className="text-2xl font-bold text-white tabular-nums">{formatLph(stats.theoretical)}<span className="text-sm font-normal text-zinc-500"> l/h</span></p>
+                    </div>
+                  )}
+                  {session.arrived_at && session.left_at && (
+                    <div>
+                      <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Temps travaillé</p>
+                      <p className="text-xl font-bold text-white">{formatDuration(new Date(session.left_at).getTime() - new Date(session.arrived_at).getTime())}</p>
+                    </div>
+                  )}
+                  {session.pad_connected_at && session.pad_disconnected_at && (
+                    <div>
+                      <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Production</p>
+                      <p className="text-xl font-bold text-white">{formatDuration(new Date(session.pad_disconnected_at).getTime() - new Date(session.pad_connected_at).getTime())}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Timeline complète */}
+            <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
+              <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Timeline</p>
+              <div className="flex flex-col gap-2 text-sm">
+                {[
+                  { label: 'Arrivée', time: session.arrived_at },
+                  { label: 'Connexion pad', time: session.pad_connected_at },
+                  { label: 'Déco pad', time: session.pad_disconnected_at },
+                  { label: 'Départ', time: session.left_at },
+                ].map(({ label, time }) => time && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-zinc-500">{label}</span>
+                    <span className="text-white font-mono font-medium">{formatTimestamp(time)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Détail missions */}
+            {missions.length > 0 && (
+              <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
+                <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Détail missions</p>
+                <div className="flex flex-col gap-4">
+                  {missions.map(m => {
+                    const dMs = m.started_at && m.ended_at ? new Date(m.ended_at).getTime() - new Date(m.started_at).getTime() : null
+                    const lph = dMs && dMs > 0 && m.total_pad_lines > 0 ? m.total_pad_lines / (dMs / 3_600_000) : null
+                    const quais = m.supports?.filter(s => s.quai != null && s.quai !== '') ?? []
+                    return (
+                      <div key={m.id} className="border-b border-zinc-800 last:border-0 pb-4 last:pb-0 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-white text-sm">
+                            Mission #{m.mission_number} — {m.support_type === 'role' ? 'Roll' : 'Palette'} ×{m.support_count}
+                          </span>
+                          <span className="text-zinc-400 text-sm tabular-nums">{m.total_pad_lines} lig. · {m.total_weight_kg}kg</span>
+                        </div>
+                        <div className="flex gap-3 text-xs text-zinc-500">
+                          <span>{formatTimestamp(m.started_at)} → {formatTimestamp(m.ended_at)}</span>
+                        </div>
+                        {(dMs !== null || lph !== null) && (
+                          <div className="flex gap-3 text-xs">
+                            {dMs !== null && <span className="text-zinc-600">{formatDuration(dMs)}</span>}
+                            {lph !== null && <span className="text-zinc-500 font-medium">{formatLph(lph)} l/h</span>}
+                          </div>
+                        )}
+                        {quais.length > 0 && (
+                          <div className="flex gap-3 flex-wrap">
+                            {quais.map(s => (
+                              <span key={s.support_index} className="text-xs">
+                                <span className="text-zinc-600">{s.label} </span>
+                                <span className="text-zinc-300 font-semibold">{s.quai}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {m.notes && <p className="text-xs text-zinc-500 leading-relaxed">{m.notes}</p>}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Pauses */}
+            {pauses.length > 0 && (
+              <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
+                <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Pauses ({pauses.length})</p>
+                <div className="flex flex-col gap-2 text-sm">
+                  {pauses.map(p => (
+                    <div key={p.id} className="flex justify-between items-center">
+                      <span className="text-zinc-500">{formatTimestamp(p.started_at)} → {formatTimestamp(p.ended_at)}</span>
+                      <span className={p.is_system_deducted ? 'text-amber-400 text-xs' : 'text-zinc-600 text-xs'}>
+                        {p.is_system_deducted ? 'décomptée' : 'non décomptée'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Injections */}
+            {snapshots.length > 0 && (
+              <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
+                <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Injections ({snapshots.length})</p>
+                <div className="flex flex-col gap-2 text-sm">
+                  {snapshots.map(s => (
+                    <div key={s.id} className="flex justify-between">
+                      <span className="text-zinc-500">{formatTimestamp(s.recorded_at)}</span>
+                      <span className="text-white font-semibold tabular-nums">{s.total_final_lines} lignes finales</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 
