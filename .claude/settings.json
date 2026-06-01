@@ -10,7 +10,14 @@
       "Bash(git commit -m 'fix: Production modal démarre au total effectif \\(stats.totalFinalLines\\) pas au dernier snapshot brut *)",
       "Bash(git commit -m 'fix: supprimer '\\\\''Total mission recalculé'\\\\'' — les lignes restantes créent une régule uniquement *)",
       "Bash(git commit -m 'docs: mise à jour CLAUDE.md — règles métier, effectiveTotalLines, régule, UI *)",
-      "Bash(git commit -m 'ui: remplacer Réel par Lignes totales en ligne 1, FIN MISSION+TEMPS MORT en 2 cols *)"
+      "Bash(git commit -m 'ui: remplacer Réel par Lignes totales en ligne 1, FIN MISSION+TEMPS MORT en 2 cols *)",
+      "Bash(git commit -m 'fix: décompte avance/retard fluide — calcul depuis valeur continue \\(non arrondie\\) *)",
+      "Bash(sed -i '' \"s/'role' ? 'Rôle' : 'Palette'/'role' ? 'Roll' : 'Palette'/g\" \\\\ *)",
+      "Bash(sed -i '' 's/Rôles vs Palettes/Rolls vs Palettes/g;s/missions rôles/missions rolls/g' '/Users/benoitblanchard/Developer/code/myshift/src/app/\\(app\\)/history/page.tsx')",
+      "Bash(sed -i '' 's/'\\\\''Rôle'\\\\''/'\\\\''Roll'\\\\''/g;s/Missions rôles/Missions rolls/g;s/% rôles/% rolls/g' /Users/benoitblanchard/Developer/code/myshift/src/lib/excel.ts)"
+    ],
+    "additionalDirectories": [
+      "/Users/benoitblanchard/Developer/code/myshift/src/app/(app)/session/[id]"
     ]
   }
 }
