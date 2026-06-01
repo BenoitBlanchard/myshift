@@ -725,7 +725,18 @@ export default function SessionPage() {
         {/* Récap complet fin de journée */}
         {session?.left_at && (
           <>
-            {/* Stats */}
+            {/* Timeline style BigButton */}
+            <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4 flex flex-col gap-2">
+              <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Timeline</p>
+              <div className="grid grid-cols-2 gap-2">
+                <BigButton label="Arrivée" icon={AlarmClock} sublabel={formatTimestamp(session.arrived_at)} variant="ghost" disabled onClick={() => {}} />
+                <BigButton label="Pad connecté" icon={LogIn} sublabel={formatTimestamp(session.pad_connected_at)} variant="ghost" disabled onClick={() => {}} />
+                <BigButton label="Déco pad" icon={LogOut} sublabel={formatTimestamp(session.pad_disconnected_at)} variant="ghost" disabled onClick={() => {}} />
+                <BigButton label="Départ" icon={Truck} sublabel={formatTimestamp(session.left_at)} variant="ghost" disabled onClick={() => {}} />
+              </div>
+            </div>
+
+            {/* Productivité */}
             {stats && (stats.pad !== null || stats.theoretical !== null) && (
               <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
                 <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Productivité</p>
@@ -757,24 +768,6 @@ export default function SessionPage() {
                 </div>
               </div>
             )}
-
-            {/* Timeline complète */}
-            <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4">
-              <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-3">Timeline</p>
-              <div className="flex flex-col gap-2 text-sm">
-                {[
-                  { label: 'Arrivée', time: session.arrived_at },
-                  { label: 'Connexion pad', time: session.pad_connected_at },
-                  { label: 'Déco pad', time: session.pad_disconnected_at },
-                  { label: 'Départ', time: session.left_at },
-                ].map(({ label, time }) => time && (
-                  <div key={label} className="flex justify-between">
-                    <span className="text-zinc-500">{label}</span>
-                    <span className="text-white font-mono font-medium">{formatTimestamp(time)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Détail missions */}
             {missions.length > 0 && (
