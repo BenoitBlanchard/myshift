@@ -539,8 +539,8 @@ export default function SessionPage() {
           )
         })()}
 
-        {/* Timeline */}
-        <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4 flex flex-col gap-3">
+        {/* Timeline — masquée en fin de journée (remplacée par le récap complet) */}
+        {!session?.left_at && <div className="bg-zinc-900/50 rounded-2xl border border-white/[0.06] p-4 flex flex-col gap-3">
           <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest">Timeline</p>
 
           <div className="grid grid-cols-2 gap-2">
@@ -609,7 +609,7 @@ export default function SessionPage() {
               className="w-full"
             />
           )}
-        </div>
+        </div>}
 
 
         {/* Récap complet fin de journée */}
