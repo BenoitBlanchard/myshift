@@ -22,7 +22,12 @@ export async function GET(request: NextRequest) {
     .eq('user_id', user.id)
     .order('mission_number')
 
-  return NextResponse.json(data ?? [])
+  const missions = (data ?? []).map((m: Record<string, unknown>) => ({
+    ...m,
+    supports: m.mission_supports,
+    mission_supports: undefined,
+  }))
+  return NextResponse.json(missions)
 }
 
 export async function POST(request: NextRequest) {
@@ -92,7 +97,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  return NextResponse.json(mission)
+  // Retourner la mission avec ses supports pour que le store ait quai dès le départ
+  const { data: full } = await supabase
+    .from('missions')
+    .select('*, mission_supports(*)')
+    .eq('id', mission.id)
+    .single()
+
+  return NextResponse.json({ ...(full ?? mission), supports: (full as Record<string, unknown>)?.mission_supports ?? [], mission_supports: undefined })
 }
 
 export async function PATCH(request: NextRequest) {
