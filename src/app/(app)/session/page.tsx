@@ -18,7 +18,7 @@ import { AdjustTotalModal } from '@/components/session/AdjustTotalModal'
 import { StatsGrid } from '@/components/dashboard/StatsGrid'
 import { MissionFormData, PauseSchedule } from '@/types'
 import { elapsed, formatTimestamp, today } from '@/lib/utils'
-import { formatDeadTime } from '@/lib/productivity'
+import { formatDeadTime, formatDuration } from '@/lib/productivity'
 
 function InlineProductionStepper({
   min,
@@ -658,6 +658,13 @@ export default function SessionPage() {
                   reguleDiff = effectiveTotal - m.total_pad_lines
                 }
 
+                const mDurationMs = m.started_at && m.ended_at
+                  ? new Date(m.ended_at).getTime() - new Date(m.started_at).getTime()
+                  : null
+                const mLph = mDurationMs && mDurationMs > 0 && m.total_pad_lines > 0
+                  ? m.total_pad_lines / (mDurationMs / 3_600_000)
+                  : null
+
                 return (
                   <div key={m.id} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-sm">
@@ -674,6 +681,19 @@ export default function SessionPage() {
                         )}
                       </div>
                     </div>
+                    {(mDurationMs !== null || mLph !== null) && (
+                      <div className="flex items-center gap-2 pl-1">
+                        {mDurationMs !== null && (
+                          <span className="text-xs text-zinc-600">{formatDuration(mDurationMs)}</span>
+                        )}
+                        {mLph !== null && (
+                          <span className="text-xs text-zinc-600">·</span>
+                        )}
+                        {mLph !== null && (
+                          <span className="text-xs text-zinc-500 font-medium">{mLph.toFixed(1)} l/h</span>
+                        )}
+                      </div>
+                    )}
                     {reguleDiff !== null && (
                       <p className={`text-xs pl-1 font-semibold ${reguleDiff < 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                         régule {reguleDiff > 0 ? '+' : ''}{reguleDiff} lig.
